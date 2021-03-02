@@ -12,7 +12,6 @@ This template contains a single lambda function triggered by an HTTP request mad
 
 In order to test the hello function locally, run the following command:
 
-- `npx sls invoke local -f handler --path mock.json`
+-   `npx sls invoke local -f handler --path mock.json`
 
 Check the [sls invoke local command documentation](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/) for more information.
-
