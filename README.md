@@ -70,7 +70,7 @@ functions:
               method: get
 ```
 
-> See the Serverless [example project](examples/serverless/README.md) for an example of how to use with `serverless.ts`.
+> See the Serverless [example project](examples/serverless) for an example of how to use with `serverless.ts`.
 
 ### Middleware
 
