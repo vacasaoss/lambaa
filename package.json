@@ -4,11 +4,15 @@
     "description": "A small framework, with very few dependencies to help build API's using AWS API Gateway & Lambda.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/vacasaoss/lambaa.git"
+    },
     "files": [
         "dist"
     ],
     "scripts": {
-        "prettier": "prettier --write './**/*.{ts,md}'",
+        "prettier": "prettier --write './**/*.{ts,json,md}'",
         "prepare": "tsc",
         "lint": "eslint --config '.eslintrc.json' 'src/**/*.ts'",
         "test": "mocha \"tests/**/*.tests.ts\"",
