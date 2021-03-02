@@ -12,6 +12,10 @@ npm i lambaa
 npm i @types/aws-lambda -D
 ```
 
+## Example Project
+
+Have a look at a [Serverless project](demo/serverless/README.md) created using the `aws-nodejs-typescript template`.
+
 ## Guide
 
 ### Controllers
@@ -52,7 +56,7 @@ const router = new Router({
 export const handler = router.getHandler()
 ```
 
-#### Use With Serverless
+#### Use With Serverless (`serverless.yml`)
 
 Your handler can be referenced in your `serverless.yml` as follows:
 
@@ -65,6 +69,8 @@ functions:
               path: ping
               method: get
 ```
+
+> See the Serverless [example project](examples/serverless/README.md) for an example of how to use with `serverless.ts`.
 
 ### Middleware
 
