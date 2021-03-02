@@ -1,11 +1,6 @@
-# Node
 node_modules
-
-# Build folder
 dist
-
-# Code coverage from nyc
 .nyc_output
 coverage
-
 .DS_STORE
+.webpack
