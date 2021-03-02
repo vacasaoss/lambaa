@@ -14,7 +14,7 @@ npm i @types/aws-lambda -D
 
 ## Example Project
 
-Have a look at a [Serverless project](examples/serverless/README.md) created using the `aws-nodejs-typescript template`.
+Have a look at a [Serverless project](examples/serverless#README.md) created using the `aws-nodejs-typescript template`.
 
 ## Guide
 
