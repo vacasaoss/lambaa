@@ -9,6 +9,12 @@ const handler = {
                 path: "ping",
             },
         },
+        {
+            http: {
+                method: "get",
+                path: "users",
+            },
+        },
     ],
 }
 
