@@ -1,0 +1,67 @@
+{
+    "name": "lambaa",
+    "version": "1.1.1",
+    "description": "A small framework, with very few dependencies to help build API's using AWS API Gateway & Lambda.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "prettier": "prettier --write './**/*.{ts,md}'",
+        "prepare": "tsc",
+        "lint": "eslint --config '.eslintrc.json' 'src/**/*.ts'",
+        "test": "mocha \"tests/**/*.tests.ts\"",
+        "coverage": "nyc mocha \"tests/**/*.tests.ts\""
+    },
+    "keywords": [
+        "api",
+        "gateway",
+        "lambda",
+        "typescript",
+        "decorators",
+        "routing"
+    ],
+    "author": "Vacasa",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.59",
+        "@types/chai": "^4.2.11",
+        "@types/chai-as-promised": "^7.1.3",
+        "@types/mocha": "^8.0.0",
+        "@types/node": "^14.0.22",
+        "@types/sinon": "^9.0.4",
+        "@types/sinon-chai": "^3.2.4",
+        "@typescript-eslint/eslint-plugin": "^3.6.1",
+        "@typescript-eslint/parser": "^3.6.1",
+        "chai": "^4.2.0",
+        "chai-as-promised": "^7.1.1",
+        "eslint": "^7.4.0",
+        "eslint-config-prettier": "^6.11.0",
+        "husky": "^4.2.5",
+        "mocha": "^8.3.0",
+        "nyc": "^15.1.0",
+        "prettier": "^2.0.5",
+        "pretty-quick": "^2.0.1",
+        "sinon": "^9.0.2",
+        "sinon-chai": "^3.5.0",
+        "ts-node": "^8.10.2",
+        "typescript": "^3.9.6"
+    },
+    "dependencies": {
+        "reflect-metadata": "^0.1.13"
+    },
+    "nyc": {
+        "extension": [
+            ".ts"
+        ],
+        "check-coverage": true,
+        "lines": 90,
+        "functions": 90,
+        "statements": 90,
+        "reporter": [
+            "lcov",
+            "html"
+        ]
+    }
+}

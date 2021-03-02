@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "lib": ["es2019"],
+        "target": "es2019",
+        "module": "commonjs",
+        "sourceMap": true,
+        "outDir": "dist",
+        "moduleResolution": "node",
+        "typeRoots": ["./node_modules/@types", "./types"],
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "experimentalDecorators": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "declaration": true,
+        "esModuleInterop": true,
+        "emitDecoratorMetadata": true
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "**/*.d.ts"]
+}
