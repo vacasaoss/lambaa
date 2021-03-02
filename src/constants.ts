@@ -1,0 +1,6 @@
+export const CONTROLLER_METADATA_KEY = Symbol("controller")
+export const FROM_BODY_METADATA_KEY = Symbol("from_body")
+export const FROM_HEADER_METADATA_KEY = Symbol("from_header")
+export const FROM_PATH_METADATA_KEY = Symbol("from_path")
+export const FROM_QUERY_METADATA_KEY = Symbol("from_query")
+export const ROUTE_HANDLER_METADATA_KEY = Symbol("route")
