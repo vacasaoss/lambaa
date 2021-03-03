@@ -1,0 +1,13 @@
+version: 2
+updates:
+    - package-ecosystem: "npm"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+          time: "07:00"
+          timezone: "Pacific/Auckland"
+      labels:
+          - "version/patch"
+          - "dependencies"
+      open-pull-requests-limit: 5
