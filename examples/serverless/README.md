@@ -10,9 +10,9 @@ This template contains a single lambda function triggered by an HTTP request mad
 
 ### Locally
 
-In order to test the handler function locally, run the following command:
+In order to test the handler function locally, run the following commandss:
 
--   `npx sls invoke local -f handler --path get-ping-mock.json`
--   `npx sls invoke local -f handler --path get-users-mock.json`
+-   `npx sls invoke local -f handler --path get-ping-mock.json` - test the `/ping` route
+-   `npx sls invoke local -f handler --path get-users-mock.json` - test the `/users` route
 
 Check the [sls invoke local command documentation](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/) for more information.
