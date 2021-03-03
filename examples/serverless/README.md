@@ -10,7 +10,7 @@ This template contains a single lambda function triggered by an HTTP request mad
 
 ### Locally
 
-In order to test the hello function locally, run the following command:
+In order to test the handler function locally, run the following command:
 
 -   `npx sls invoke local -f handler --path get-ping-mock.json`
 -   `npx sls invoke local -f handler --path get-users-mock.json`
