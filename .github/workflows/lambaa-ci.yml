@@ -1,7 +1,10 @@
 name: Lambaa CI
 
 on:
-  [push, pull_request]
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
 
 jobs:
   build:
