@@ -1,33 +1,43 @@
+/**
+ * Used to store routing data on controllers.
+ */
 export default class RouteMap {
     constructor(private map = new Map<string, string>()) {}
 
-    public addRoute(
-        method: string,
-        resource: string,
-        propertyKey: string | symbol
-    ): void {
-        resource = this.normalizePath(resource)
-        this.map.set(`${resource}_${method}`, propertyKey.toString())
-    }
-
-    public getRoute(
-        method: string,
-        resource: string,
-        basePath?: string
-    ): string | undefined {
-        resource = this.normalizePath(resource)
-
-        if (basePath && resource.includes(basePath)) {
-            basePath = this.normalizePath(basePath)
-
-            const methodPath = this.normalizePath(
-                resource.substring(basePath.length)
+    /**
+     * Store the name of the method which can handle this route.
+     */
+    public addRoute(route: RouteType, propertyKey: string | symbol): void {
+        if (route.eventType === "API_GATEWAY") {
+            route.resource = this.normalizePath(route.resource)
+            this.map.set(
+                `${route.resource}_${route.method}`,
+                propertyKey.toString()
             )
 
-            return this.map.get(`${methodPath}_${method}`)
+            return
         }
+    }
 
-        return this.map.get(`${resource}_${method}`)
+    /**
+     * Get the name of the method which can handle this route.
+     */
+    public getRoute(route: RouteType): string | undefined {
+        if (route.eventType === "API_GATEWAY") {
+            route.resource = this.normalizePath(route.resource)
+
+            if (route.basePath && route.resource.includes(route.basePath)) {
+                route.basePath = this.normalizePath(route.basePath)
+
+                const methodPath = this.normalizePath(
+                    route.resource.substring(route.basePath.length)
+                )
+
+                route.resource = methodPath
+            }
+
+            return this.map.get(`${route.resource}_${route.method}`)
+        }
     }
 
     private normalizePath(part: string): string {

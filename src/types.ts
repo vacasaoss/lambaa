@@ -52,3 +52,15 @@ export type Handler<
     TEvent = APIGatewayProxyEvent,
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
+
+export type RouteType =
+    | {
+          eventType: "API_GATEWAY"
+          method: string
+          resource: string
+          basePath?: string
+      }
+    | {
+          eventType: "SQS"
+          arn: string
+      }

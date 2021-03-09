@@ -48,11 +48,12 @@ class Router {
                     controller
                 )
 
-                const method = routeMap?.getRoute(
-                    event.httpMethod,
-                    event.resource,
-                    controllerOptions.basePath
-                )
+                const method = routeMap?.getRoute({
+                    eventType: "API_GATEWAY",
+                    method: event.httpMethod,
+                    resource: event.resource,
+                    basePath: controllerOptions.basePath,
+                })
 
                 if (!method) {
                     continue

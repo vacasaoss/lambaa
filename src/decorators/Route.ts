@@ -20,7 +20,10 @@ export default function Route(
             Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
             new RouteMap()
 
-        routeMap.addRoute(method, resource, propertyKey)
+        routeMap.addRoute(
+            { eventType: "API_GATEWAY", method, resource },
+            propertyKey
+        )
 
         Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
 
