@@ -93,6 +93,12 @@ class Router {
                             break
                         }
                     }
+
+                    if (process.env.DEBUG?.toLowerCase() === "true") {
+                        console.debug(
+                            `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+                    }
                 }
 
                 if (!method) {
