@@ -191,15 +191,13 @@ describe("routing tests", () => {
         expect(response.body).to.equal("test6")
     })
 
-    it("returns 500 error if route is not defined", async () => {
+    it("throws error if no route is configured", async () => {
         const event = createAPIGatewayEvent({
             resource: "/wrong",
             method: "GET",
         })
 
-        const response = await handler(event, context)
-
-        expect(response.statusCode).to.equal(500)
+        await expect(handler(event, context)).to.eventually.be.rejected
     })
 
     it("logs debug message", async () => {

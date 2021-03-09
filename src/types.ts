@@ -2,6 +2,7 @@ import {
     Context,
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
+    SQSEvent,
 } from "aws-lambda"
 
 export interface RequestOptions {
@@ -43,9 +44,11 @@ export interface Middleware<
     invoke: MiddlewareFunction<TEvent, TResult>
 }
 
-export interface RouterRegistration {
+export interface RouterRegistration<TEvent = any, TResult = any> {
     controllers: any[]
-    middleware?: Array<Middleware | MiddlewareFunction>
+    middleware?: Array<
+        Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
+    >
 }
 
 export type Handler<
@@ -53,7 +56,9 @@ export type Handler<
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
 
-export type Event = APIGatewayProxyEvent
+export type Event = APIGatewayProxyEvent | SQSEvent
+
+export type Result = APIGatewayProxyResult | void
 
 export type RouteProperties =
     | {
