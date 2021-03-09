@@ -1,5 +1,5 @@
-import { Context, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda" // prettier-ignore
-import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction } from "./types" // prettier-ignore
+import { Context, APIGatewayProxyResult } from "aws-lambda" // prettier-ignore
+import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction, Event } from "./types" // prettier-ignore
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
@@ -16,7 +16,7 @@ class Router {
      */
     public getHandler(): Handler {
         return (
-            event: APIGatewayProxyEvent,
+            event: Event,
             context: Context
         ): Promise<APIGatewayProxyResult> => this.route(event, context)
     }
@@ -27,7 +27,7 @@ class Router {
      * @param context The API Gateway context.
      */
     public async route(
-        event: APIGatewayProxyEvent,
+        event: Event,
         context: Context
     ): Promise<APIGatewayProxyResult> {
         for (const { controllers, middleware } of this.registrations) {
@@ -92,7 +92,7 @@ class Router {
      * Execute the middleware pipeline.
      */
     private invoke(
-        event: APIGatewayProxyEvent,
+        event: Event,
         context: Context,
         handler: Handler,
         pipeline: Array<Middleware | MiddlewareFunction>
@@ -120,7 +120,7 @@ class Router {
     private executeRouteHandler(
         controller: any,
         method: string,
-        event: APIGatewayProxyEvent,
+        event: Event,
         context: Context
     ): Promise<APIGatewayProxyResult> {
         const args = replaceEventArgs(event, controller, method, [
