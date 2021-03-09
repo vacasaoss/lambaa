@@ -1,8 +1,24 @@
-import { APIGatewayProxyResult, APIGatewayProxyEvent } from "aws-lambda"
-import Route, { GET, POST, DELETE, PATCH, PUT } from "../src/decorators/Route"
+import {
+    APIGatewayProxyResult,
+    APIGatewayProxyEvent,
+    SQSEvent,
+} from "aws-lambda"
+import Route, {
+    GET,
+    POST,
+    DELETE,
+    PATCH,
+    PUT,
+    SQS,
+    API,
+} from "../src/decorators/Route"
 import Controller from "../src/decorators/Controller"
 import Router from "../src/Router"
-import { createAPIGatewayContext, createAPIGatewayEvent } from "./testUtil"
+import {
+    createApiGatewayContext as createApiGatewayContext,
+    createApiGatewayEvent,
+    createSqsEvent,
+} from "./testUtil"
 import { expect } from "chai"
 import sinon from "sinon"
 
@@ -59,6 +75,12 @@ class TestController {
             body: "test6",
         }
     }
+
+    @SQS("arn:123")
+    public async testSqs(sqsEvent: SQSEvent): Promise<void> {
+        expect(sqsEvent.Records).not.to.be.empty
+        expect(sqsEvent.Records[0].eventSourceARN).to.equal("arn:123")
+    }
 }
 
 @Controller("/test")
@@ -92,7 +114,7 @@ class TestController3 {
         }
     }
 
-    @Route("GET", "10")
+    @API("GET", "10")
     public async test10(): Promise<APIGatewayProxyResult> {
         return {
             statusCode: 200,
@@ -110,7 +132,7 @@ const router = new Router({
 })
 
 const handler = router.getHandler()
-const context = createAPIGatewayContext()
+const context = createApiGatewayContext()
 
 describe("routing tests", () => {
     afterEach(() => {
@@ -119,7 +141,7 @@ describe("routing tests", () => {
     })
 
     it("routes http get event when method returns promise", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -131,7 +153,7 @@ describe("routing tests", () => {
     })
 
     it("routes http get event", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test2",
             method: "GET",
         })
@@ -143,7 +165,7 @@ describe("routing tests", () => {
     })
 
     it("routes http post event", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test3",
             method: "POST",
             body: "test",
@@ -156,7 +178,7 @@ describe("routing tests", () => {
     })
 
     it("routes http delete event", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test4",
             method: "DELETE",
         })
@@ -168,7 +190,7 @@ describe("routing tests", () => {
     })
 
     it("routes http patch event", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test5",
             method: "PATCH",
         })
@@ -180,7 +202,7 @@ describe("routing tests", () => {
     })
 
     it("routes http put event", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test6",
             method: "PUT",
         })
@@ -192,7 +214,7 @@ describe("routing tests", () => {
     })
 
     it("throws error if no route is configured", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/wrong",
             method: "GET",
         })
@@ -203,7 +225,7 @@ describe("routing tests", () => {
     it("logs debug message", async () => {
         const consoleDebugStub = sinon.stub(console, "debug")
         process.env.DEBUG = "true"
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -215,7 +237,7 @@ describe("routing tests", () => {
     })
 
     it("routes http request when base path is defined on controller", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test/7",
             method: "GET",
         })
@@ -226,9 +248,9 @@ describe("routing tests", () => {
         expect(response.body).to.equal("test7")
     })
 
-    describe("it routes http get request when bsae path is defined on controller", () => {
+    describe("it routes http get request when base path is defined on controller", () => {
         it("routes when method route has leading /", async () => {
-            const event = createAPIGatewayEvent({
+            const event = createApiGatewayEvent({
                 resource: "/test/7",
                 method: "GET",
             })
@@ -240,7 +262,7 @@ describe("routing tests", () => {
         })
 
         it("routes when method route has no leading /", async () => {
-            const event = createAPIGatewayEvent({
+            const event = createApiGatewayEvent({
                 resource: "/test/8",
                 method: "GET",
             })
@@ -252,7 +274,7 @@ describe("routing tests", () => {
         })
 
         it("rotues when base path route has leading /", async () => {
-            const event = createAPIGatewayEvent({
+            const event = createApiGatewayEvent({
                 resource: "/test/9",
                 method: "GET",
             })
@@ -264,7 +286,7 @@ describe("routing tests", () => {
         })
 
         it("routes when base path route has no leading /", async () => {
-            const event = createAPIGatewayEvent({
+            const event = createApiGatewayEvent({
                 resource: "/test/10",
                 method: "GET",
             })
@@ -273,6 +295,19 @@ describe("routing tests", () => {
 
             expect(response.statusCode).to.equal(200)
             expect(response.body).to.equal("test10")
+        })
+    })
+
+    describe("it routes SQS event", () => {
+        it("routes event", async () => {
+            const event = createSqsEvent({ arn: "arn:123" })
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createSqsEvent({ arn: "arn:234" })
+            await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })
 })

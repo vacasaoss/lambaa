@@ -5,7 +5,7 @@ import {
 } from "aws-lambda"
 import Router from "../src/Router"
 import Route from "../src/decorators/Route"
-import { createAPIGatewayContext, createAPIGatewayEvent } from "./testUtil"
+import { createApiGatewayContext, createApiGatewayEvent } from "./testUtil"
 import { expect } from "chai"
 import Controller from "../src/decorators/Controller"
 import { Middleware, Handler, MiddlewareFunction } from "../src/types"
@@ -178,7 +178,7 @@ class TestController4 {
     }
 }
 
-const context = createAPIGatewayContext()
+const context = createApiGatewayContext()
 
 describe("middleware tests", () => {
     afterEach(() => {
@@ -186,7 +186,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through single middleware applied in the constructor", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -207,7 +207,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through single middleware applied using the decorator", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test2",
             method: "GET",
         })
@@ -227,7 +227,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through single middleware applied using the controller base class constructor", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -247,7 +247,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through multiple middlewares applied in the constructor", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -273,7 +273,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through multiple middlewares applied using decorators", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test3",
             method: "GET",
         })
@@ -295,7 +295,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through multiple middlewares applied using the controller base class constructor", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -317,7 +317,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through multiple middlewares applied using the constructor, decorator, and base class constructor", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test2",
             method: "GET",
         })
@@ -355,7 +355,7 @@ describe("middleware tests", () => {
     })
 
     it("terminated request processing early if middleware returns response", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -380,7 +380,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through correct middleware when multiple registrations are provided to router constructor", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -407,7 +407,7 @@ describe("middleware tests", () => {
     })
 
     it("routes through multiple middlewares setup using a mix of functional style and class style", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "/test1",
             method: "GET",
         })

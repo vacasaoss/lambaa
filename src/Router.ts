@@ -97,8 +97,8 @@ class Router {
                 return this.invoke(
                     event,
                     context,
-                    (r, c) =>
-                        this.executeRouteHandler(controller, method!, r, c),
+                    (e, c) =>
+                        this.executeRouteHandler(controller, method!, e, c),
                     pipeline
                 )
             }

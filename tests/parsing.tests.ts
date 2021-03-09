@@ -4,7 +4,7 @@ import FromQuery from "../src/decorators/FromQuery"
 import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
 import Router from "../src/Router"
-import { createAPIGatewayContext, createAPIGatewayEvent } from "./testUtil"
+import { createApiGatewayContext, createApiGatewayEvent } from "./testUtil"
 import { expect } from "chai"
 import RequestError from "../src/RequestError"
 import Controller from "../src/decorators/Controller"
@@ -81,11 +81,11 @@ class TestController {
 }
 
 const router = new Router({ controllers: [new TestController()] })
-const context = createAPIGatewayContext()
+const context = createApiGatewayContext()
 
 describe("request parsing tests", () => {
     it("extracts path parameter from request", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_path_test",
             method: "GET",
             pathParameters: {
@@ -100,7 +100,7 @@ describe("request parsing tests", () => {
     })
 
     it("extracts query string parameter from request", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_query_test",
             method: "GET",
             queryStringParameters: {
@@ -115,7 +115,7 @@ describe("request parsing tests", () => {
     })
 
     it("extracts header from request", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_header_test",
             method: "GET",
             headers: {
@@ -130,7 +130,7 @@ describe("request parsing tests", () => {
     })
 
     it("extracts JSON body from request", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_body_test",
             method: "GET",
             body: JSON.stringify({ test: true }),
@@ -143,7 +143,7 @@ describe("request parsing tests", () => {
     })
 
     it("throws error if path parameter is not provided", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_path_test",
             method: "GET",
         })
@@ -154,7 +154,7 @@ describe("request parsing tests", () => {
     })
 
     it("throws error if query parameter is not provided", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_query_test",
             method: "GET",
         })
@@ -165,7 +165,7 @@ describe("request parsing tests", () => {
     })
 
     it("throws error if header is not provided", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_header_test",
             method: "GET",
         })
@@ -176,7 +176,7 @@ describe("request parsing tests", () => {
     })
 
     it("throws error if body is not provided", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "from_body_test",
             method: "GET",
         })
@@ -187,7 +187,7 @@ describe("request parsing tests", () => {
     })
 
     it("passes correct args to controller when using middleware", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "use_middleware_test",
             method: "GET",
             queryStringParameters: {
@@ -202,7 +202,7 @@ describe("request parsing tests", () => {
     })
 
     it("passes correct args to controller when event is modified using middleware", async () => {
-        const event = createAPIGatewayEvent({
+        const event = createApiGatewayEvent({
             resource: "use_middleware_modify_test",
             method: "GET",
             queryStringParameters: {
