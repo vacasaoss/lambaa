@@ -4,6 +4,7 @@ import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareF
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
+import { isApiGatewayEvent, isSqsEvent } from "./typeGuards"
 
 class Router {
     private registrations: RouterRegistration[]
@@ -68,8 +69,7 @@ class Router {
 
                 let method: string | undefined
 
-                if ("httpMethod" in event) {
-                    // API Gateway event
+                if (isApiGatewayEvent(event)) {
                     method = routeMap?.getRoute({
                         eventType: "API_GATEWAY",
                         method: event.httpMethod,
@@ -82,13 +82,8 @@ class Router {
                             `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
                         )
                     }
-                } else if ("Records" in event && event.Records.length > 0) {
-                    // SQS event
+                } else if (isSqsEvent(event) && event.Records.length > 0) {
                     for (const record of event.Records) {
-                        if (record.eventSource !== "aws:sqs") {
-                            continue
-                        }
-
                         method = routeMap?.getRoute({
                             eventType: "SQS",
                             arn: record.eventSourceARN,
