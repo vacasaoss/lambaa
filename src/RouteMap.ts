@@ -1,3 +1,5 @@
+import { RouteProperties } from "./types"
+
 /**
  * Used to store routing data on controllers.
  */
@@ -7,7 +9,10 @@ export default class RouteMap {
     /**
      * Store the name of the method which can handle this route.
      */
-    public addRoute(route: RouteType, propertyKey: string | symbol): void {
+    public addRoute(
+        route: RouteProperties,
+        propertyKey: string | symbol
+    ): void {
         if (route.eventType === "API_GATEWAY") {
             route.resource = this.normalizePath(route.resource)
             this.map.set(
@@ -22,7 +27,7 @@ export default class RouteMap {
     /**
      * Get the name of the method which can handle this route.
      */
-    public getRoute(route: RouteType): string | undefined {
+    public getRoute(route: RouteProperties): string | undefined {
         if (route.eventType === "API_GATEWAY") {
             route.resource = this.normalizePath(route.resource)
 

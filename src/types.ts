@@ -53,7 +53,7 @@ export type Handler<
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
 
-export type RouteType =
+export type RouteProperties =
     | {
           eventType: "API_GATEWAY"
           method: string
