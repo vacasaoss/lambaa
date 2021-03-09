@@ -82,7 +82,7 @@ export const createSqsEvent = (...arns: string[]): SQSEvent => ({
         },
         messageAttributes: {},
         md5OfBody: "",
-        eventSource: "",
+        eventSource: "aws:sqs",
         awsRegion: "",
     })),
 })

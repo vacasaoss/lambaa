@@ -80,6 +80,10 @@ class Router {
                 } else if ("Records" in event && event.Records.length > 0) {
                     // SQS event
                     for (const record of event.Records) {
+                        if (record.eventSource !== "aws:sqs") {
+                            continue
+                        }
+
                         method = routeMap?.getRoute({
                             eventType: "SQS",
                             arn: record.eventSourceARN,
