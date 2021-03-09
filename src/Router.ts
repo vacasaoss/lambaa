@@ -68,6 +68,7 @@ class Router {
                 )
 
                 let method: string | undefined
+                let debugMessage: string | undefined
 
                 if (isApiGatewayEvent(event)) {
                     method = routeMap?.getRoute({
@@ -77,10 +78,8 @@ class Router {
                         basePath: controllerOptions.basePath,
                     })
 
-                    if (process.env.DEBUG?.toLowerCase() === "true") {
-                        console.debug(
-                            `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
-                        )
+                    if (method) {
+                        debugMessage = `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
                     }
                 } else if (isSqsEvent(event) && event.Records.length > 0) {
                     for (const record of event.Records) {
@@ -90,19 +89,21 @@ class Router {
                         })
 
                         if (method) {
+                            debugMessage = `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
                             break
                         }
-                    }
-
-                    if (process.env.DEBUG?.toLowerCase() === "true") {
-                        console.debug(
-                            `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
-                        )
                     }
                 }
 
                 if (!method) {
                     continue
+                }
+
+                if (
+                    debugMessage &&
+                    process.env.DEBUG?.toLowerCase() === "true"
+                ) {
+                    console.debug(debugMessage)
                 }
 
                 const pipeline = [
