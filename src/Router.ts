@@ -30,18 +30,23 @@ class Router {
             this.route(event, context)
     }
 
+    /**
+     * Route an incoming API Gateway request to a controller.
+     * @param event The API Gateway event.
+     * @param context The Lambda context.
+     */
     public route(
         event: APIGatewayProxyEvent,
         context: Context
     ): Promise<APIGatewayProxyResult>
 
+    /**
+     * Route an incoming SQS event request to a controller.
+     * @param event The SQS event.
+     * @param context The Lambda context.
+     */
     public route(event: SQSEvent, context: Context): Promise<void>
 
-    /**
-     * Route an incoming API Gateway request to a controller.
-     * @param event The API Gateway event.
-     * @param context The API Gateway context.
-     */
     public async route(event: Event, context: Context): Promise<Result> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
