@@ -67,26 +67,24 @@ export const createApiGatewayEvent = ({
     return eventTemplate
 }
 
-export const createSqsEvent = ({ arn }: { arn: string }): SQSEvent => ({
-    Records: [
-        {
-            eventSourceARN: arn,
-            messageId: "message_id",
-            receiptHandle: "receipt_handle",
-            body: "",
-            attributes: {
-                AWSTraceHeader: "",
-                ApproximateReceiveCount: "",
-                SentTimestamp: "",
-                SenderId: "",
-                ApproximateFirstReceiveTimestamp: "",
-            },
-            messageAttributes: {},
-            md5OfBody: "",
-            eventSource: "",
-            awsRegion: "",
+export const createSqsEvent = (...arns: string[]): SQSEvent => ({
+    Records: arns.map((arn) => ({
+        eventSourceARN: arn,
+        messageId: "message_id",
+        receiptHandle: "receipt_handle",
+        body: "",
+        attributes: {
+            AWSTraceHeader: "",
+            ApproximateReceiveCount: "",
+            SentTimestamp: "",
+            SenderId: "",
+            ApproximateFirstReceiveTimestamp: "",
         },
-    ],
+        messageAttributes: {},
+        md5OfBody: "",
+        eventSource: "",
+        awsRegion: "",
+    })),
 })
 
 export const createApiGatewayContext = (): Context => ({

@@ -33,6 +33,7 @@ export default function Route(
 
 /**
  * Define an SQS event handler.
+ * @param arn The ARN of the queue.
  */
 export function SQS(arn: string): MethodDecorator {
     return (

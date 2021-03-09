@@ -79,10 +79,16 @@ class Router {
                     }
                 } else if ("Records" in event && event.Records.length > 0) {
                     // SQS event
-                    method = routeMap?.getRoute({
-                        eventType: "SQS",
-                        arn: event.Records[0].eventSourceARN,
-                    })
+                    for (const record of event.Records) {
+                        method = routeMap?.getRoute({
+                            eventType: "SQS",
+                            arn: record.eventSourceARN,
+                        })
+
+                        if (method) {
+                            break
+                        }
+                    }
                 }
 
                 if (!method) {
