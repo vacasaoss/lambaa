@@ -76,7 +76,21 @@ functions:
 
 Middleware can be used to modify the request/response pipeline.
 
-Create a middleware class by implementing the `Middleware` interface.
+You can define middleware by using the `Middleware`, or `MiddlewareFunction` interfaces.
+
+```typescript
+import { MiddlewareFunction } from "lambaa"
+
+const middleware: MiddlewareFunction = async (event, context, next) => {
+    // Operate on the request here
+
+    // Pass the event to the next middleware
+    const response = await next(event, context)
+
+    // Operate on the response here
+    return response
+}
+```
 
 ```typescript
 import { Middleware, Handler } from "lambaa"
@@ -103,36 +117,20 @@ class LogRequestMiddleware implements Middleware {
 }
 ```
 
-Middleware can also be created using a functional style.
-
-```typescript
-import { MiddlewareFunction } from "lambaa"
-
-const middleware: MiddlewareFunction = async (event, context, next) => {
-    // Operate on the request here
-
-    // Pass the event to the next middleware
-    const response = await next(event, context)
-
-    // Operate on the response here
-    return response
-}
-```
-
 The default middleware event/result types can be changed by specifying generic type parameters.
 
 ```typescript
-// Class style
-class SQSMiddleware implements Middleware<SQSEvent, void> {
-    // ...
-}
-
 // Functional style
 const sqsMiddleware: MiddlewareFunction<SQSEvent, void> = async (
     event,
     context,
     next
 ) => {
+    // ...
+}
+
+// Class style
+class SQSMiddleware implements Middleware<SQSEvent, void> {
     // ...
 }
 ```
@@ -142,6 +140,7 @@ const sqsMiddleware: MiddlewareFunction<SQSEvent, void> = async (
 Middleware can be added to a controller method directly, by using the `@Use()` decorator.
 
 ```typescript
+@Use(new AuthenticationMiddleware())
 @Use(new LogRequestMiddleware())
 @GET("/ping")
 public ping(event: APIGatewayProxyEvent) {
