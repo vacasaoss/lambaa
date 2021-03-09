@@ -21,6 +21,8 @@ export default class RouteMap {
             )
 
             return
+        } else if (route.eventType === "SQS") {
+            this.map.set(route.arn, propertyKey.toString())
         }
     }
 
@@ -42,6 +44,8 @@ export default class RouteMap {
             }
 
             return this.map.get(`${route.resource}_${route.method}`)
+        } else if (route.eventType === "SQS") {
+            return this.map.get(route.arn)
         }
     }
 

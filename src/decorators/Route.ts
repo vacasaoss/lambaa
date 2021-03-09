@@ -32,6 +32,33 @@ export default function Route(
 }
 
 /**
+ * Define an SQS event handler.
+ */
+export function SQS(arn: string): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute({ eventType: "SQS", arn }, propertyKey)
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
+
+/**
+ * Define an API Gateway event handler.
+ */
+export const API = (method: HTTPMethod, resource: string) =>
+    Route(method, resource)
+
+/**
  * Define an HTTP `GET` request handler.
  * @param resource The request resource path.
  */

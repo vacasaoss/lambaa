@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, SQSEvent } from "aws-lambda" // prettier-ignore
 import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction, Event, Result } from "./types" // prettier-ignore
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
@@ -60,25 +61,32 @@ class Router {
                     controller
                 )
 
-                if (!("httpMethod" in event)) {
-                    throw new Error("Unsupported event type")
-                }
+                let method: string | undefined
 
-                const method = routeMap?.getRoute({
-                    eventType: "API_GATEWAY",
-                    method: event.httpMethod,
-                    resource: event.resource,
-                    basePath: controllerOptions.basePath,
-                })
+                if ("httpMethod" in event) {
+                    // API Gateway event
+                    method = routeMap?.getRoute({
+                        eventType: "API_GATEWAY",
+                        method: event.httpMethod,
+                        resource: event.resource,
+                        basePath: controllerOptions.basePath,
+                    })
+
+                    if (process.env.DEBUG?.toLowerCase() === "true") {
+                        console.debug(
+                            `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
+                        )
+                    }
+                } else if ("Records" in event && event.Records.length > 0) {
+                    // SQS event
+                    method = routeMap?.getRoute({
+                        eventType: "SQS",
+                        arn: event.Records[0].eventSourceARN,
+                    })
+                }
 
                 if (!method) {
                     continue
-                }
-
-                if (process.env.DEBUG?.toLowerCase() === "true") {
-                    console.debug(
-                        `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
-                    )
                 }
 
                 const pipeline = [
@@ -90,7 +98,7 @@ class Router {
                     event,
                     context,
                     (r, c) =>
-                        this.executeRouteHandler(controller, method, r, c),
+                        this.executeRouteHandler(controller, method!, r, c),
                     pipeline
                 )
             }
