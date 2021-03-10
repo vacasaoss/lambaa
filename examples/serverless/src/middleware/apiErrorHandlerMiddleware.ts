@@ -1,6 +1,6 @@
 import { MiddlewareFunction } from "lambaa"
 
-const errorHandlerMiddleware: MiddlewareFunction = async (
+const apiErrorHandlerMiddleware: MiddlewareFunction = async (
     event,
     context,
     next
@@ -17,4 +17,4 @@ const errorHandlerMiddleware: MiddlewareFunction = async (
     }
 }
 
-export default errorHandlerMiddleware
+export default apiErrorHandlerMiddleware

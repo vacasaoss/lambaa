@@ -14,11 +14,11 @@
         "source-map-support": "^0.5.19"
     },
     "devDependencies": {
-        "@serverless/typescript": "^2.23.0",
+        "@serverless/typescript": "^2.29.0",
         "@types/aws-lambda": "^8.10.71",
         "@types/node": "^14.14.25",
         "json-schema-to-ts": "^1.5.0",
-        "serverless": "^2.23.0",
+        "serverless": "^2.29.0",
         "serverless-webpack": "^5.3.5",
         "ts-loader": "^8.0.15",
         "ts-node": "^9.1.1",
