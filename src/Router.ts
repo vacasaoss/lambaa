@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, SQSEvent } from "aws-lambda" // prettier-ignore
-import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction, Event, Result } from "./types" // prettier-ignore
+import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction } from "./types" // prettier-ignore
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
@@ -48,7 +48,10 @@ class Router {
      */
     public route(event: SQSEvent, context: Context): Promise<void>
 
-    public async route(event: Event, context: Context): Promise<Result> {
+    public async route<TEvent, TResult>(
+        event: TEvent,
+        context: Context
+    ): Promise<TResult> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
                 const controllerOptions:
@@ -127,21 +130,19 @@ class Router {
     /**
      * Execute the middleware pipeline.
      */
-    private invoke<TEvent, TResult>(
-        event: TEvent,
+    private invoke(
+        event: any,
         context: Context,
-        handler: Handler<TEvent, TResult>,
-        pipeline: Array<
-            Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
-        >
-    ): Promise<TResult> {
+        handler: Handler<any, any>,
+        pipeline: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
+    ): Promise<any> {
         const middleware = pipeline.pop()
 
         if (!middleware) {
             return handler(event, context)
         }
 
-        const next = (e: TEvent, c: Context) =>
+        const next = (e: any, c: Context) =>
             this.invoke(e, c, handler, pipeline)
 
         return "invoke" in middleware
@@ -152,12 +153,12 @@ class Router {
     /**
      * Extract request parameters and pass to the route handler.
      */
-    private executeRouteHandler<TEvent, TResult>(
+    private executeRouteHandler(
         controller: any,
         method: string,
-        event: TEvent,
+        event: any,
         context: Context
-    ): Promise<TResult> {
+    ): Promise<any> {
         const args = replaceEventArgs(event, controller, method, [
             event,
             context,

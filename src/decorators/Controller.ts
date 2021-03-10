@@ -6,9 +6,9 @@ import { ControllerOptions, MiddlewareFunction, Middleware } from "../types"
  */
 export default function Controller(): ClassDecorator
 export default function Controller(basePath: string): ClassDecorator
-export default function Controller(middleware: Middleware): ClassDecorator
-export default function Controller(middleware: MiddlewareFunction): ClassDecorator // prettier-ignore
-export default function Controller(middleware: Array<Middleware | MiddlewareFunction>): ClassDecorator // prettier-ignore
+export default function Controller(middleware: Middleware<any, any>): ClassDecorator // prettier-ignore
+export default function Controller(middleware: MiddlewareFunction<any, any>): ClassDecorator // prettier-ignore
+export default function Controller(middleware: Array<Middleware<any, any> | MiddlewareFunction<any, any>>): ClassDecorator // prettier-ignore
 export default function Controller(options: ControllerOptions): ClassDecorator
 export default function Controller(
     options?:
@@ -16,7 +16,7 @@ export default function Controller(
         | string
         | Middleware
         | MiddlewareFunction
-        | Array<Middleware | MiddlewareFunction>
+        | Array<Middleware<any, any> | MiddlewareFunction<any, any>>
 ): ClassDecorator {
     let controllerOptions: ControllerOptions = {}
 

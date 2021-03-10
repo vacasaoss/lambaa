@@ -1,6 +1,6 @@
 import { SQSEvent } from "aws-lambda"
 import { Controller, SQS } from "lambaa"
-import recordQueueEventMiddleware from "src/middleware/recordQueueEventMiddleware"
+import recordQueueEventMiddleware from "../middleware/recordQueueEventMiddleware"
 
 @Controller(recordQueueEventMiddleware)
 export default class QueueController {

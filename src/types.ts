@@ -2,7 +2,6 @@ import {
     Context,
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
-    SQSEvent,
 } from "aws-lambda"
 
 export interface RequestOptions {
@@ -10,7 +9,7 @@ export interface RequestOptions {
 }
 
 export type ControllerOptions = {
-    middleware?: Array<Middleware | MiddlewareFunction>
+    middleware?: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
     basePath?: string
 }
 
@@ -44,6 +43,9 @@ export interface Middleware<
     invoke: MiddlewareFunction<TEvent, TResult>
 }
 
+/**
+ * Defines controller/ middleware, registered with the controller.
+ */
 export interface RouterRegistration<TEvent = any, TResult = any> {
     controllers: any[]
     middleware?: Array<
@@ -51,14 +53,13 @@ export interface RouterRegistration<TEvent = any, TResult = any> {
     >
 }
 
+/**
+ * Defines a Lambda event handler.
+ */
 export type Handler<
     TEvent = APIGatewayProxyEvent,
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
-
-export type Event = APIGatewayProxyEvent | SQSEvent
-
-export type Result = APIGatewayProxyResult | void
 
 export type RouteProperties =
     | {

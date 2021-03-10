@@ -77,10 +77,21 @@ class TestController {
     }
 
     @SQS("arn:123")
-    public async testSqs(sqsEvent: SQSEvent): Promise<void> {
+    public async testSqs1(sqsEvent: SQSEvent): Promise<void> {
         expect(sqsEvent.Records).not.to.be.empty
-        const record = sqsEvent.Records.find(({ eventSourceARN }) => eventSourceARN === "arn:123") // prettier-ignore
+        const record = sqsEvent.Records.find(
+            ({ eventSourceARN }) => eventSourceARN === "arn:123"
+        )
         expect(record?.eventSourceARN).to.equal("arn:123")
+    }
+
+    @SQS("arn:234")
+    public async testSqs2(sqsEvent: SQSEvent): Promise<void> {
+        expect(sqsEvent.Records).not.to.be.empty
+        const record = sqsEvent.Records.find(
+            ({ eventSourceARN }) => eventSourceARN === "arn:234"
+        )
+        expect(record?.eventSourceARN).to.equal("arn:234")
     }
 }
 
@@ -307,7 +318,7 @@ describe("routing tests", () => {
         })
 
         it("throws error if there is no handler for this arn", async () => {
-            const event = createSqsEvent("arn:234")
+            const event = createSqsEvent("arn:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
 
