@@ -141,15 +141,12 @@ class Router {
             return handler(event, context)
         }
 
-        if ("invoke" in middleware) {
-            return middleware.invoke(event, context, (r, c) =>
-                this.invoke(r, c, handler, pipeline)
-            )
-        } else {
-            return middleware(event, context, (r, c) =>
-                this.invoke(r, c, handler, pipeline)
-            )
-        }
+        const next = (e: TEvent, c: Context) =>
+            this.invoke(e, c, handler, pipeline)
+
+        return "invoke" in middleware
+            ? middleware.invoke(event, context, next)
+            : middleware(event, context, next)
     }
 
     /**
