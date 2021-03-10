@@ -32,7 +32,7 @@ class Router {
     }
 
     /**
-     * Route an incoming API Gateway request to a controller.
+     * Route an incoming API Gateway event to a controller.
      * @param event The API Gateway event.
      * @param context The Lambda context.
      */
@@ -42,7 +42,7 @@ class Router {
     ): Promise<APIGatewayProxyResult>
 
     /**
-     * Route an incoming SQS event request to a controller.
+     * Route an incoming SQS event to a controller.
      * @param event The SQS event.
      * @param context The Lambda context.
      */
