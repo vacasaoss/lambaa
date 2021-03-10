@@ -14,15 +14,15 @@ export default function Controller(
     options?:
         | ControllerOptions
         | string
-        | Middleware
-        | MiddlewareFunction
+        | Middleware<any, any>
+        | MiddlewareFunction<any, any>
         | Array<Middleware<any, any> | MiddlewareFunction<any, any>>
 ): ClassDecorator {
     let controllerOptions: ControllerOptions = {}
 
     if (options) {
-        const isMiddleware = (i: unknown): i is Middleware => {
-            const as = i as Middleware
+        const isMiddleware = (i: unknown): i is Middleware<any, any> => {
+            const as = i as Middleware<any, any>
             return as.invoke !== undefined
         }
 
