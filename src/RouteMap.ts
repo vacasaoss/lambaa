@@ -1,4 +1,14 @@
-import { RouteProperties } from "./types"
+type RouteProperties =
+    | {
+          eventType: "API_GATEWAY"
+          method: string
+          resource: string
+          basePath?: string
+      }
+    | {
+          eventType: "SQS"
+          arn: string
+      }
 
 /**
  * Used to store routing data on controllers.
