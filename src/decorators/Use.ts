@@ -1,5 +1,6 @@
 import { Middleware, MiddlewareFunction } from "../types"
 import replaceEventArgs from "../replaceEventArgs"
+import { Context } from "aws-lambda"
 
 /**
  * Add middleware to the request piepline of a single route.
@@ -21,21 +22,15 @@ export default function Use<TEvent, TResponse>(
                 // This because the router may call this with additional args, e.g. (@FromBody() etc args), however the final two will still be (event, context).
                 const [event, context] = args.slice(-2)
 
-                if ("invoke" in middleware) {
-                    return middleware.invoke(event, context, (e, c) =>
-                        original.apply(
-                            this,
-                            replaceEventArgs(e, target, propertyKey, [e, c])
-                        )
+                const next = (e: TEvent, c: Context) =>
+                    original.apply(
+                        this,
+                        replaceEventArgs(e, target, propertyKey, [e, c])
                     )
-                } else {
-                    return middleware(event, context, (e, c) =>
-                        original.apply(
-                            this,
-                            replaceEventArgs(e, target, propertyKey, [e, c])
-                        )
-                    )
-                }
+
+                return "invoke" in middleware
+                    ? middleware.invoke(event, context, next)
+                    : middleware(event, context, next)
             }
         }
 

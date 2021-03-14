@@ -15,6 +15,13 @@ const handler = {
                 path: "users",
             },
         },
+        {
+            sqs: {
+                arn: {
+                    "Fn::GetAtt": ["exampleQueue", "Arn"],
+                },
+            },
+        },
     ],
 }
 
@@ -36,12 +43,23 @@ const serverlessConfiguration: AWS = {
             shouldStartNameWithService: true,
         },
         environment: {
-            AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
+            EXAMPLE_QUEUE_ARN: {
+                "Fn::GetAtt": ["exampleQueue", "Arn"],
+            },
         },
         lambdaHashingVersion: "20201221",
     },
-    // import the function via paths
     functions: { handler },
+    resources: {
+        Resources: {
+            exampleQueue: {
+                Type: "AWS::SQS::Queue",
+                Properties: {
+                    QueueName: "example-queue",
+                },
+            },
+        },
+    },
 }
 
 module.exports = serverlessConfiguration
