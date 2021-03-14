@@ -15,7 +15,6 @@ class Router {
 
     /**
      * Get a Lambda event handler.
-     * @returns The Lambda event handler.
      */
     public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
         TEvent,
