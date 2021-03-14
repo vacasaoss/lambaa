@@ -15,9 +15,9 @@ import Route, {
 import Controller from "../src/decorators/Controller"
 import Router from "../src/Router"
 import {
-    createApiGatewayContext as createApiGatewayContext,
-    createApiGatewayEvent,
-    createSqsEvent,
+    createLambdaContext as createLambdaContext,
+    createAPIGatewayEvent,
+    createSQSEvent,
 } from "./testUtil"
 import { expect } from "chai"
 import sinon from "sinon"
@@ -144,7 +144,7 @@ const router = new Router({
 })
 
 const handler = router.getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
-const context = createApiGatewayContext()
+const context = createLambdaContext()
 
 describe("routing tests", () => {
     afterEach(() => {
@@ -153,7 +153,7 @@ describe("routing tests", () => {
     })
 
     it("routes http get event when method returns promise", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -165,7 +165,7 @@ describe("routing tests", () => {
     })
 
     it("routes http get event", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test2",
             method: "GET",
         })
@@ -177,7 +177,7 @@ describe("routing tests", () => {
     })
 
     it("routes http post event", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test3",
             method: "POST",
             body: "test",
@@ -190,7 +190,7 @@ describe("routing tests", () => {
     })
 
     it("routes http delete event", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test4",
             method: "DELETE",
         })
@@ -202,7 +202,7 @@ describe("routing tests", () => {
     })
 
     it("routes http patch event", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test5",
             method: "PATCH",
         })
@@ -214,7 +214,7 @@ describe("routing tests", () => {
     })
 
     it("routes http put event", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test6",
             method: "PUT",
         })
@@ -226,7 +226,7 @@ describe("routing tests", () => {
     })
 
     it("throws error if no route is configured", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/wrong",
             method: "GET",
         })
@@ -237,7 +237,7 @@ describe("routing tests", () => {
     it("logs debug message", async () => {
         const consoleDebugStub = sinon.stub(console, "debug")
         process.env.DEBUG = "true"
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test1",
             method: "GET",
         })
@@ -249,7 +249,7 @@ describe("routing tests", () => {
     })
 
     it("routes http request when base path is defined on controller", async () => {
-        const event = createApiGatewayEvent({
+        const event = createAPIGatewayEvent({
             resource: "/test/7",
             method: "GET",
         })
@@ -262,7 +262,7 @@ describe("routing tests", () => {
 
     describe("it routes http get request when base path is defined on controller", () => {
         it("routes when method route has leading /", async () => {
-            const event = createApiGatewayEvent({
+            const event = createAPIGatewayEvent({
                 resource: "/test/7",
                 method: "GET",
             })
@@ -274,7 +274,7 @@ describe("routing tests", () => {
         })
 
         it("routes when method route has no leading /", async () => {
-            const event = createApiGatewayEvent({
+            const event = createAPIGatewayEvent({
                 resource: "/test/8",
                 method: "GET",
             })
@@ -286,7 +286,7 @@ describe("routing tests", () => {
         })
 
         it("rotues when base path route has leading /", async () => {
-            const event = createApiGatewayEvent({
+            const event = createAPIGatewayEvent({
                 resource: "/test/9",
                 method: "GET",
             })
@@ -298,7 +298,7 @@ describe("routing tests", () => {
         })
 
         it("routes when base path route has no leading /", async () => {
-            const event = createApiGatewayEvent({
+            const event = createAPIGatewayEvent({
                 resource: "/test/10",
                 method: "GET",
             })
@@ -312,18 +312,18 @@ describe("routing tests", () => {
 
     describe("it routes SQS event", () => {
         it("routes event", async () => {
-            const event = createSqsEvent("arn:123")
+            const event = createSQSEvent("arn:123")
             const response = await router.route(event, context)
             expect(response).to.be.undefined
         })
 
         it("throws error if there is no handler for this arn", async () => {
-            const event = createSqsEvent("arn:wrong")
+            const event = createSQSEvent("arn:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
 
         it("routes event with multiple records", async () => {
-            const event = createSqsEvent("arn:abc", "arn:234", "arn:123")
+            const event = createSQSEvent("arn:abc", "arn:234", "arn:123")
             const response = await router.route(event, context)
             expect(response).to.be.undefined
         })
