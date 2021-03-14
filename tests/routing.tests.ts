@@ -143,7 +143,7 @@ const router = new Router({
     ],
 })
 
-const handler = router.getHandler()
+const handler = router.getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
 const context = createApiGatewayContext()
 
 describe("routing tests", () => {

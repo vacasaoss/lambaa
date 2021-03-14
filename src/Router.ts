@@ -14,21 +14,15 @@ class Router {
     }
 
     /**
-     * Create an API Gateway event handler.
+     * Get a Lambda event handler.
+     * @returns The Lambda event handler.
      */
-    public getHandler<TEvent extends APIGatewayProxyEvent>(): Handler<
+    public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
         TEvent,
-        APIGatewayProxyResult
-    >
-
-    /**
-     * Create an SQS event handler.
-     */
-    public getHandler<TEvent extends SQSEvent>(): Handler<TEvent, void>
-
-    public getHandler(): Handler<unknown, unknown> {
-        return (event: any, context: Context): Promise<unknown> =>
-            this.route(event, context)
+        TResult
+    > {
+        return (event: TEvent, context: Context): Promise<TResult> =>
+            this.route(event as any, context) as any
     }
 
     /**
