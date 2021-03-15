@@ -1,9 +1,13 @@
 import { APIGatewayProxyResult } from "aws-lambda"
 import { Controller, GET } from "lambaa"
-import authorizationMiddleware from "src/middleware/authorizationMiddleware"
+import authorizationMiddleware from "../middleware/authorizationMiddleware"
+import apiErrorHandlerMiddleware from "../middleware/apiErrorHandlerMiddleware"
 
-@Controller(authorizationMiddleware)
+@Controller([apiErrorHandlerMiddleware, authorizationMiddleware])
 export default class UsersController {
+    /**
+     * Handle `GET` `/users` requests.
+     */
     @GET("/users")
     public async getUsers(): Promise<APIGatewayProxyResult> {
         const users = await this.fetchUsers()

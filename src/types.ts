@@ -9,7 +9,7 @@ export interface RequestOptions {
 }
 
 export type ControllerOptions = {
-    middleware?: Array<Middleware | MiddlewareFunction>
+    middleware?: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
     basePath?: string
 }
 
@@ -43,11 +43,19 @@ export interface Middleware<
     invoke: MiddlewareFunction<TEvent, TResult>
 }
 
-export interface RouterRegistration {
+/**
+ * Defines controller/ middleware, registered with the controller.
+ */
+export interface RouterRegistration<TEvent = any, TResult = any> {
     controllers: any[]
-    middleware?: Array<Middleware | MiddlewareFunction>
+    middleware?: Array<
+        Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
+    >
 }
 
+/**
+ * Defines a Lambda event handler.
+ */
 export type Handler<
     TEvent = APIGatewayProxyEvent,
     TResult = APIGatewayProxyResult

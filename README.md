@@ -22,22 +22,33 @@ Have a look at a [Serverless project](examples/serverless) created using the `aw
 
 This library has the concept of controllers, similar to other web frameworks.
 
-To create a controller, add the `@Controller()` decorator to a class.
+To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](src/decorators/Route.ts), e.g. `@GET("/ping")`.
 
-Define routes using one of the route decorators, e.g. `@GET("/ping")`.
+> Currently only API Gateway and SQS events are supported.
 
 ```typescript
-import { GET, Controller } from "lambaa"
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import { GET, SQS, Controller } from "lambaa"
+import {
+    APIGatewayProxyEvent,
+    SQSEvent,
+    APIGatewayProxyResult,
+} from "aws-lambda"
 
 @Controller()
-class PingController {
+class TestController {
     @GET("/ping")
     public ping(event: APIGatewayProxyEvent): APIGatewayProxyResult {
+        // ...
         return {
             statusCode: 200,
             body: "pong",
         }
+    }
+
+    @SQS("arn:123")
+    public receive(event: SQSEvent): void {
+        // ...
+        return
     }
 }
 ```
@@ -76,7 +87,21 @@ functions:
 
 Middleware can be used to modify the request/response pipeline.
 
-Create a middleware class by implementing the `Middleware` interface.
+You can define middleware by using the `Middleware`, or `MiddlewareFunction` interfaces.
+
+```typescript
+import { MiddlewareFunction } from "lambaa"
+
+const middleware: MiddlewareFunction = async (event, context, next) => {
+    // Operate on the request here
+
+    // Pass the event to the next middleware
+    const response = await next(event, context)
+
+    // Operate on the response here
+    return response
+}
+```
 
 ```typescript
 import { Middleware, Handler } from "lambaa"
@@ -103,31 +128,9 @@ class LogRequestMiddleware implements Middleware {
 }
 ```
 
-Middleware can also be created using a functional style.
-
-```typescript
-import { MiddlewareFunction } from "lambaa"
-
-const middleware: MiddlewareFunction = async (event, context, next) => {
-    // Operate on the request here
-
-    // Pass the event to the next middleware
-    const response = await next(event, context)
-
-    // Operate on the response here
-    return response
-}
-```
-
 The default middleware event/result types can be changed by specifying generic type parameters.
 
 ```typescript
-// Class style
-class SQSMiddleware implements Middleware<SQSEvent, void> {
-    // ...
-}
-
-// Functional style
 const sqsMiddleware: MiddlewareFunction<SQSEvent, void> = async (
     event,
     context,
@@ -142,6 +145,7 @@ const sqsMiddleware: MiddlewareFunction<SQSEvent, void> = async (
 Middleware can be added to a controller method directly, by using the `@Use()` decorator.
 
 ```typescript
+@Use(new AuthenticationMiddleware())
 @Use(new LogRequestMiddleware())
 @GET("/ping")
 public ping(event: APIGatewayProxyEvent) {
@@ -152,7 +156,7 @@ public ping(event: APIGatewayProxyEvent) {
 }
 ```
 
-They can also be applied by being passed to the `Controller` decorator.
+They can also be applied by being passed to the `@Controller()` decorator.
 
 ```typescript
 @Controller({ middleware: [new LogRequestMiddleware()] })

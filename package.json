@@ -1,6 +1,6 @@
 {
     "name": "lambaa",
-    "version": "1.2.1",
+    "version": "2.0.0",
     "description": "A small framework, with very few dependencies to help build API's using AWS API Gateway & Lambda.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
