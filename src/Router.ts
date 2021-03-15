@@ -1,8 +1,10 @@
-import { Context, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda" // prettier-ignore
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, SQSEvent } from "aws-lambda" // prettier-ignore
 import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction } from "./types" // prettier-ignore
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
+import { isApiGatewayEvent, isSqsEvent } from "./typeGuards"
 
 class Router {
     private registrations: RouterRegistration[]
@@ -12,24 +14,37 @@ class Router {
     }
 
     /**
-     * Create an API Gateway event handler.
+     * Get a Lambda event handler.
      */
-    public getHandler(): Handler {
-        return (
-            event: APIGatewayProxyEvent,
-            context: Context
-        ): Promise<APIGatewayProxyResult> => this.route(event, context)
+    public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
+        TEvent,
+        TResult
+    > {
+        return (event: TEvent, context: Context): Promise<TResult> =>
+            this.route(event as any, context) as any
     }
 
     /**
-     * Route an incoming API Gateway request to a controller.
+     * Route an incoming API Gateway event to a controller.
      * @param event The API Gateway event.
-     * @param context The API Gateway context.
+     * @param context The Lambda context.
      */
-    public async route(
+    public route(
         event: APIGatewayProxyEvent,
         context: Context
-    ): Promise<APIGatewayProxyResult> {
+    ): Promise<APIGatewayProxyResult>
+
+    /**
+     * Route an incoming SQS event to a controller.
+     * @param event The SQS event.
+     * @param context The Lambda context.
+     */
+    public route(event: SQSEvent, context: Context): Promise<void>
+
+    public async route<TEvent, TResult>(
+        event: TEvent,
+        context: Context
+    ): Promise<TResult> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
                 const controllerOptions:
@@ -48,20 +63,43 @@ class Router {
                     controller
                 )
 
-                const method = routeMap?.getRoute(
-                    event.httpMethod,
-                    event.resource,
-                    controllerOptions.basePath
-                )
+                let method: string | undefined
+                let debugMessage: string | undefined
+
+                if (isApiGatewayEvent(event)) {
+                    method = routeMap?.getRoute({
+                        eventType: "API_GATEWAY",
+                        method: event.httpMethod,
+                        resource: event.resource,
+                        basePath: controllerOptions.basePath,
+                    })
+
+                    if (method) {
+                        debugMessage = `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
+                    }
+                } else if (isSqsEvent(event) && event.Records.length > 0) {
+                    for (const record of event.Records) {
+                        method = routeMap?.getRoute({
+                            eventType: "SQS",
+                            arn: record.eventSourceARN,
+                        })
+
+                        if (method) {
+                            debugMessage = `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                            break
+                        }
+                    }
+                }
 
                 if (!method) {
                     continue
                 }
 
-                if (process.env.DEBUG?.toLowerCase() === "true") {
-                    console.debug(
-                        `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
-                    )
+                if (
+                    debugMessage &&
+                    process.env.DEBUG?.toLowerCase() === "true"
+                ) {
+                    console.debug(debugMessage)
                 }
 
                 const pipeline = [
@@ -72,45 +110,37 @@ class Router {
                 return this.invoke(
                     event,
                     context,
-                    (r, c) =>
-                        this.executeRouteHandler(controller, method, r, c),
+                    (e, c) =>
+                        this.executeRouteHandler(controller, method!, e, c),
                     pipeline
                 )
             }
         }
 
-        console.error("No configured route for this event")
-
-        return {
-            statusCode: 500,
-            body: "",
-        }
+        throw new Error("No configured route for this event")
     }
 
     /**
      * Execute the middleware pipeline.
      */
     private invoke(
-        event: APIGatewayProxyEvent,
+        event: any,
         context: Context,
-        handler: Handler,
-        pipeline: Array<Middleware | MiddlewareFunction>
-    ): Promise<APIGatewayProxyResult> {
+        handler: Handler<any, any>,
+        pipeline: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
+    ): Promise<any> {
         const middleware = pipeline.pop()
 
         if (!middleware) {
             return handler(event, context)
         }
 
-        if ("invoke" in middleware) {
-            return middleware.invoke(event, context, (r, c) =>
-                this.invoke(r, c, handler, pipeline)
-            )
-        } else {
-            return middleware(event, context, (r, c) =>
-                this.invoke(r, c, handler, pipeline)
-            )
-        }
+        const next = (e: any, c: Context) =>
+            this.invoke(e, c, handler, pipeline)
+
+        return "invoke" in middleware
+            ? middleware.invoke(event, context, next)
+            : middleware(event, context, next)
     }
 
     /**
@@ -119,9 +149,9 @@ class Router {
     private executeRouteHandler(
         controller: any,
         method: string,
-        event: APIGatewayProxyEvent,
+        event: any,
         context: Context
-    ): Promise<APIGatewayProxyResult> {
+    ): Promise<any> {
         const args = replaceEventArgs(event, controller, method, [
             event,
             context,

@@ -1,4 +1,5 @@
-import { APIGatewayProxyEvent, Context } from "aws-lambda"
+/* eslint-disable @typescript-eslint/ban-types */
+import { APIGatewayProxyEvent, Context, SQSEvent } from "aws-lambda"
 
 export const createAPIGatewayEvent = ({
     body,
@@ -66,7 +67,27 @@ export const createAPIGatewayEvent = ({
     return eventTemplate
 }
 
-export const createAPIGatewayContext = (): Context => ({
+export const createSQSEvent = (...arns: string[]): SQSEvent => ({
+    Records: arns.map((arn) => ({
+        eventSourceARN: arn,
+        messageId: "message_id",
+        receiptHandle: "receipt_handle",
+        body: "",
+        attributes: {
+            AWSTraceHeader: "",
+            ApproximateReceiveCount: "",
+            SentTimestamp: "",
+            SenderId: "",
+            ApproximateFirstReceiveTimestamp: "",
+        },
+        messageAttributes: {},
+        md5OfBody: "",
+        eventSource: "aws:sqs",
+        awsRegion: "",
+    })),
+})
+
+export const createLambdaContext = (): Context => ({
     awsRequestId: "1234",
     callbackWaitsForEmptyEventLoop: true,
     done: (): object => ({}),

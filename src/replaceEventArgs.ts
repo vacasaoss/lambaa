@@ -7,11 +7,7 @@ import {
     FROM_PATH_METADATA_KEY,
     FROM_HEADER_METADATA_KEY,
 } from "./constants"
-
-const isAPIGatewayEvent = (event: unknown): event is APIGatewayProxyEvent => {
-    const e = event as APIGatewayProxyEvent
-    return e.resource !== undefined && e.httpMethod !== undefined
-}
+import { isApiGatewayEvent } from "./typeGuards"
 
 /**
  * If the `@FromBody()` decorator is applied to a parameter:
@@ -163,7 +159,7 @@ const replaceEventArgs = <TEvent>(
 ): any[] => {
     const args = [...currentArgs]
 
-    if (isAPIGatewayEvent(event)) {
+    if (isApiGatewayEvent(event)) {
         replaceFromBodyArgs(event, target, propertyKey, args)
         replaceFromQueryArgs(event, target, propertyKey, args)
         replaceFromPathArgs(event, target, propertyKey, args)

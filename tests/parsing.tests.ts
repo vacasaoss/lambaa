@@ -4,7 +4,7 @@ import FromQuery from "../src/decorators/FromQuery"
 import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
 import Router from "../src/Router"
-import { createAPIGatewayContext, createAPIGatewayEvent } from "./testUtil"
+import { createLambdaContext, createAPIGatewayEvent } from "./testUtil"
 import { expect } from "chai"
 import RequestError from "../src/RequestError"
 import Controller from "../src/decorators/Controller"
@@ -81,7 +81,7 @@ class TestController {
 }
 
 const router = new Router({ controllers: [new TestController()] })
-const context = createAPIGatewayContext()
+const context = createLambdaContext()
 
 describe("request parsing tests", () => {
     it("extracts path parameter from request", async () => {

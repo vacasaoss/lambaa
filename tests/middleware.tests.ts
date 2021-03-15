@@ -5,7 +5,7 @@ import {
 } from "aws-lambda"
 import Router from "../src/Router"
 import Route from "../src/decorators/Route"
-import { createAPIGatewayContext, createAPIGatewayEvent } from "./testUtil"
+import { createLambdaContext, createAPIGatewayEvent } from "./testUtil"
 import { expect } from "chai"
 import Controller from "../src/decorators/Controller"
 import { Middleware, Handler, MiddlewareFunction } from "../src/types"
@@ -178,7 +178,7 @@ class TestController4 {
     }
 }
 
-const context = createAPIGatewayContext()
+const context = createLambdaContext()
 
 describe("middleware tests", () => {
     afterEach(() => {
@@ -191,12 +191,12 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController1()],
             middleware: [new TestMiddleware("middleware_1")],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test1")
@@ -212,11 +212,11 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController1()],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test2")
@@ -232,11 +232,11 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController2()],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test1")
@@ -252,15 +252,15 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController1()],
             middleware: [
                 new TestMiddleware("middleware_1"),
                 new TestMiddleware("middleware_2"),
             ],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test1")
@@ -278,11 +278,11 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController1()],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test3")
@@ -300,11 +300,11 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController3()],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test1")
@@ -322,15 +322,15 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController3()],
             middleware: [
                 new TestMiddleware("middleware_constructor_1"),
                 new TestMiddleware("middleware_constructor_2"),
             ],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test2")
@@ -360,16 +360,16 @@ describe("middleware tests", () => {
             method: "GET",
         })
 
-        const handler = new Router({
+        const router = new Router({
             controllers: [new TestController1()],
             middleware: [
                 new TestMiddleware("middleware_1"),
                 new ReturnEarlyMiddleware(),
                 new TestMiddleware("middleware_2"),
             ],
-        }).getHandler()
+        })
 
-        const response = await handler(event, context)
+        const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("return_early_middleware")
@@ -394,7 +394,7 @@ describe("middleware tests", () => {
                 controllers: [new TestController2()],
                 middleware: [new TestMiddleware("middleware_2")],
             }
-        ).getHandler()
+        ).getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
 
         const response = await handler(event, context)
 
@@ -415,7 +415,7 @@ describe("middleware tests", () => {
         const handler = new Router({
             controllers: [new TestController4()],
             middleware: [new TestMiddleware("middleware_1")],
-        }).getHandler()
+        }).getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
 
         const response = await handler(event, context)
 
