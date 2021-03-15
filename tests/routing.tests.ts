@@ -1,8 +1,24 @@
-import { APIGatewayProxyResult, APIGatewayProxyEvent } from "aws-lambda"
-import Route, { GET, POST, DELETE, PATCH, PUT } from "../src/decorators/Route"
+import {
+    APIGatewayProxyResult,
+    APIGatewayProxyEvent,
+    SQSEvent,
+} from "aws-lambda"
+import Route, {
+    GET,
+    POST,
+    DELETE,
+    PATCH,
+    PUT,
+    SQS,
+    API,
+} from "../src/decorators/Route"
 import Controller from "../src/decorators/Controller"
 import Router from "../src/Router"
-import { createAPIGatewayContext, createAPIGatewayEvent } from "./testUtil"
+import {
+    createLambdaContext as createLambdaContext,
+    createAPIGatewayEvent,
+    createSQSEvent,
+} from "./testUtil"
 import { expect } from "chai"
 import sinon from "sinon"
 
@@ -59,6 +75,24 @@ class TestController {
             body: "test6",
         }
     }
+
+    @SQS("arn:123")
+    public async testSqs1(sqsEvent: SQSEvent): Promise<void> {
+        expect(sqsEvent.Records).not.to.be.empty
+        const record = sqsEvent.Records.find(
+            ({ eventSourceARN }) => eventSourceARN === "arn:123"
+        )
+        expect(record?.eventSourceARN).to.equal("arn:123")
+    }
+
+    @SQS("arn:234")
+    public async testSqs2(sqsEvent: SQSEvent): Promise<void> {
+        expect(sqsEvent.Records).not.to.be.empty
+        const record = sqsEvent.Records.find(
+            ({ eventSourceARN }) => eventSourceARN === "arn:234"
+        )
+        expect(record?.eventSourceARN).to.equal("arn:234")
+    }
 }
 
 @Controller("/test")
@@ -92,7 +126,7 @@ class TestController3 {
         }
     }
 
-    @Route("GET", "10")
+    @API("GET", "10")
     public async test10(): Promise<APIGatewayProxyResult> {
         return {
             statusCode: 200,
@@ -109,8 +143,8 @@ const router = new Router({
     ],
 })
 
-const handler = router.getHandler()
-const context = createAPIGatewayContext()
+const handler = router.getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
+const context = createLambdaContext()
 
 describe("routing tests", () => {
     afterEach(() => {
@@ -191,15 +225,13 @@ describe("routing tests", () => {
         expect(response.body).to.equal("test6")
     })
 
-    it("returns 500 error if route is not defined", async () => {
+    it("throws error if no route is configured", async () => {
         const event = createAPIGatewayEvent({
             resource: "/wrong",
             method: "GET",
         })
 
-        const response = await handler(event, context)
-
-        expect(response.statusCode).to.equal(500)
+        await expect(handler(event, context)).to.eventually.be.rejected
     })
 
     it("logs debug message", async () => {
@@ -228,7 +260,7 @@ describe("routing tests", () => {
         expect(response.body).to.equal("test7")
     })
 
-    describe("it routes http get request when bsae path is defined on controller", () => {
+    describe("it routes http get request when base path is defined on controller", () => {
         it("routes when method route has leading /", async () => {
             const event = createAPIGatewayEvent({
                 resource: "/test/7",
@@ -275,6 +307,25 @@ describe("routing tests", () => {
 
             expect(response.statusCode).to.equal(200)
             expect(response.body).to.equal("test10")
+        })
+    })
+
+    describe("it routes SQS event", () => {
+        it("routes event", async () => {
+            const event = createSQSEvent("arn:123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createSQSEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+
+        it("routes event with multiple records", async () => {
+            const event = createSQSEvent("arn:abc", "arn:234", "arn:123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
         })
     })
 })
