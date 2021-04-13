@@ -28,5 +28,5 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               with:
                   tag_name: ${{ steps.tag_name.outputs.tag_name }}
-                  release_name: ${{ steps.create_release_notes.outputs.release-name }}
+                  release_name: ${{ steps.tag_name.outputs.tag_name }}
                   body: ${{ steps.create_release_notes.outputs.release-notes }}
