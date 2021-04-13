@@ -19,8 +19,8 @@ jobs:
             - name: Generate tag name
               id: tag_name
               run: echo "::set-output name=tag_name::$(node -e 'console.log(require("./package.json").version)')"
-            - uses: johnyherangi/release-notes@main
-              id: release_notes
+            - uses: johnyherangi/create-release-notes@v1.0.0
+              id: create_release_notes
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - uses: actions/create-release@v1
@@ -28,5 +28,5 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               with:
                   tag_name: ${{ steps.tag_name.outputs.tag_name }}
-                  release_name: ${{ steps.release_notes.outputs.release_name }}
-                  body: ${{ steps.release_notes.outputs.release_notes }}
+                  release_name: ${{ steps.create_release_notes.outputs.release-name }}
+                  body: ${{ steps.create_release_notes.outputs.release-notes }}
