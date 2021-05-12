@@ -16,12 +16,12 @@ class Router {
     /**
      * Get a Lambda event handler.
      */
-    public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
+    public getHandler<TEvent = unknown, TResult = unknown>({proxy = false}): Handler<
         TEvent,
         TResult
     > {
         return (event: TEvent, context: Context): Promise<TResult> =>
-            this.route(event as any, context) as any
+            this.route(event as any, context, proxy) as any
     }
 
     /**
@@ -31,7 +31,8 @@ class Router {
      */
     public route(
         event: APIGatewayProxyEvent,
-        context: Context
+        context: Context,
+        proxy: boolean
     ): Promise<APIGatewayProxyResult>
 
     /**
@@ -39,11 +40,12 @@ class Router {
      * @param event The SQS event.
      * @param context The Lambda context.
      */
-    public route(event: SQSEvent, context: Context): Promise<void>
+    public route(event: SQSEvent, context: Context, proxy: false): Promise<void>
 
     public async route<TEvent, TResult>(
         event: TEvent,
-        context: Context
+        context: Context,
+        proxy: boolean
     ): Promise<TResult> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
@@ -67,11 +69,17 @@ class Router {
                 let debugMessage: string | undefined
 
                 if (isApiGatewayEvent(event)) {
+                    
+                    if(proxy) {
+                        event.resource = event.path;
+                    }
+                    
                     method = routeMap?.getRoute({
                         eventType: "API_GATEWAY",
                         method: event.httpMethod,
                         resource: event.resource,
                         basePath: controllerOptions.basePath,
+                        proxy
                     })
 
                     if (method) {
