@@ -5,7 +5,6 @@ type RouteProperties =
           eventType: "API_GATEWAY"
           method: string
           resource: string
-          proxy: boolean
           basePath?: string
       }
     | {
@@ -46,16 +45,6 @@ export default class RouteMap {
         if (route.eventType === "API_GATEWAY") {
             route.resource = this.normalizePath(route.resource)
 
-            // on proxy we match event.resource to the url pattern
-            if(route.proxy){
-                for (const [key, routeKey] of this.map.entries()) {
-                    if (this.isPathMatch(route.resource, key, route.event)) {
-                        return routeKey;
-                    }
-                }
-            }
-
-            // if no proxy map based on resource + method
             if (route.basePath && route.resource.includes(route.basePath)) {
                 route.basePath = this.normalizePath(route.basePath)
 
@@ -72,12 +61,28 @@ export default class RouteMap {
         }
     }
 
+    /**
+     * Get the name of the method which can handle this route but also
+     * overrides event.pathParameters based on data extracted from the url
+     */
+    public getRouteOverridePathParams(event: APIGatewayProxyEvent): string | undefined{
+        for (const [key, routeKey] of this.map.entries()) {
+            // isPathMatch overrides the current event.pathParams
+            if (this.isPathMatch(key, event)) {
+                return routeKey;
+            }
+        }
+    }
+
+    /**
+     * Checks if the event.path matches one the url patterns avaible on
+     * the controller map.
+     */
     private isPathMatch(
-        eventPath: string,
         route: string,
-        event: APIGatewayProxyEvent | null
+        event: APIGatewayProxyEvent
     ): boolean {
-        const eventPathParts = eventPath.split("/")
+        const eventPathParts = event.path.split("/")
         const routePathParts = route.split("_")[0].split("/")
 
         // Fail fast if they're not the same length

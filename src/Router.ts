@@ -4,7 +4,7 @@ import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareF
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
-import { isApiGatewayEvent, isSqsEvent } from "./typeGuards"
+import { isApiGatewayEvent, isApiGatewayProxyEvent, isSqsEvent } from "./typeGuards"
 
 class Router {
     private registrations: RouterRegistration[]
@@ -16,12 +16,12 @@ class Router {
     /**
      * Get a Lambda event handler.
      */
-    public getHandler<TEvent = unknown, TResult = unknown>({proxy = false}): Handler<
+    public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
         TEvent,
         TResult
     > {
         return (event: TEvent, context: Context): Promise<TResult> =>
-            this.route(event as any, context, proxy) as any
+            this.route(event as any, context) as any
     }
 
     /**
@@ -31,8 +31,7 @@ class Router {
      */
     public route(
         event: APIGatewayProxyEvent,
-        context: Context,
-        proxy: boolean
+        context: Context
     ): Promise<APIGatewayProxyResult>
 
     /**
@@ -44,8 +43,7 @@ class Router {
 
     public async route<TEvent, TResult>(
         event: TEvent,
-        context: Context,
-        proxy: boolean
+        context: Context
     ): Promise<TResult> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
@@ -68,18 +66,18 @@ class Router {
                 let method: string | undefined
                 let debugMessage: string | undefined
 
-                if (isApiGatewayEvent(event)) {
-                    
-                    if(proxy) {
-                        event.resource = event.path;
+                if (isApiGatewayProxyEvent(event)){
+                    method = routeMap?.getRouteOverridePathParams(event);
+                    if (method) {
+                        debugMessage = `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
                     }
+                } else if (isApiGatewayEvent(event)) {
                     
                     method = routeMap?.getRoute({
                         eventType: "API_GATEWAY",
                         method: event.httpMethod,
                         resource: event.resource,
-                        basePath: controllerOptions.basePath,
-                        proxy
+                        basePath: controllerOptions.basePath
                     })
 
                     if (method) {
