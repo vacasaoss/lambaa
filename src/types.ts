@@ -1,11 +1,12 @@
 import {
-    Context,
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
+    Context
 } from "aws-lambda"
 
-export interface RequestOptions {
+export interface RequestOptions<T> {
     required: boolean
+    coerce?: (data: string) => T
 }
 
 export type ControllerOptions = {
