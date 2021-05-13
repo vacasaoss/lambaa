@@ -109,9 +109,7 @@ const replaceFromPathArgs = (
 
         // Replace the argument at the index with the path parameter value
         args[index] =
-            options?.coerce && value
-                ? options.coerce(value)
-                : value || undefined
+            options.coerce && value ? options.coerce(value) : value || undefined
     })
 }
 
