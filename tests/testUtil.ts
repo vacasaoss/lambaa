@@ -72,6 +72,7 @@ export const createAPIGatewayProxyEvent = (args: any) => {
     return {
         ...event,
         path: args.path,
+        pathParameters: {},
         resource: '{+proxy}'
     }
 }

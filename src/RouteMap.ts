@@ -66,10 +66,10 @@ export default class RouteMap {
      * overrides event.pathParameters based on data extracted from the url
      */
     public getRouteOverridePathParams(event: APIGatewayProxyEvent): string | undefined{
-        for (const [key, routeKey] of this.map.entries()) {
+        for (const [controllerPathKey, controllerKey] of this.map.entries()) {
             // isPathMatch overrides the current event.pathParams
-            if (this.isPathMatch(key, event)) {
-                return routeKey;
+            if (this.isPathMatch(controllerPathKey, event)) {
+                return controllerKey;
             }
         }
     }
@@ -77,6 +77,7 @@ export default class RouteMap {
     /**
      * Checks if the event.path matches one the url patterns avaible on
      * the controller map.
+     * TODO: allow snake cased pattern match
      */
     private isPathMatch(
         route: string,
