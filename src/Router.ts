@@ -39,7 +39,7 @@ class Router {
      * @param event The SQS event.
      * @param context The Lambda context.
      */
-    public route(event: SQSEvent, context: Context, proxy: false): Promise<void>
+    public route(event: SQSEvent, context: Context): Promise<void>
 
     public async route<TEvent, TResult>(
         event: TEvent,
