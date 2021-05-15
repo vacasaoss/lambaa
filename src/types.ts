@@ -4,9 +4,9 @@ import {
     Context
 } from "aws-lambda"
 
-export interface RequestOptions<T> {
+export interface RequestOptions {
     required: boolean
-    coerce?: (data: string) => T
+    coerce?: (data: string) => unknown
 }
 
 export type ControllerOptions = {

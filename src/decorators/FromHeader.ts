@@ -1,14 +1,18 @@
+import getDefaultCoerce from "../coerce"
 import { FROM_HEADER_METADATA_KEY } from "../constants"
 import { RequestOptions } from "../types"
 
 /**
  * Extract a header value from the request.
  */
-export default function FromHeader<T = string>(
+export default function FromHeader(
     name: string,
-    options: RequestOptions<T> = { required: true }
+    options: RequestOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
+        if (!options.coerce) {
+            options.coerce = getDefaultCoerce(target, propertyKey, index)
+        }
         const existing: any[] =
             Reflect.getOwnMetadata(
                 FROM_HEADER_METADATA_KEY,

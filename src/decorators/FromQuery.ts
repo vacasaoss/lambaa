@@ -1,14 +1,18 @@
+import getDefaultCoerce from "../coerce"
 import { FROM_QUERY_METADATA_KEY } from "../constants"
 import { RequestOptions } from "../types"
 
 /**
  * Extract a parameter from the request query string.
  */
-export default function FromQuery<T = string>(
+export default function FromQuery(
     name: string,
-    options: RequestOptions<T> = { required: true }
+    options: RequestOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
+        if (!options.coerce) {
+            options.coerce = getDefaultCoerce(target, propertyKey, index)
+        }
         const existing: any[] =
             Reflect.getOwnMetadata(
                 FROM_QUERY_METADATA_KEY,
