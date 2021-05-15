@@ -1,7 +1,7 @@
 import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
-    Context
+    Context,
 } from "aws-lambda"
 
 export interface RequestOptions {

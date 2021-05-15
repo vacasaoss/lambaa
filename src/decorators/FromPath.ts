@@ -5,7 +5,10 @@ import { RequestOptions } from "../types"
 /**
  * Extract a parameter from the request resource path.
  */
-export default function FromPath(name: string, options: Omit<RequestOptions, 'required'> = {}): ParameterDecorator {
+export default function FromPath(
+    name: string,
+    options: Omit<RequestOptions, "required"> = {}
+): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         if (!options.coerce) {
             options.coerce = getDefaultCoerce(target, propertyKey, index)
