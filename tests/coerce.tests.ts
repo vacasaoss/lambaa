@@ -14,23 +14,16 @@ class TestController {
         @FromPath("string") stringParam: string,
         @FromPath("number") numberParam: number,
         @FromPath("boolean") booleanParam: boolean,
-        @FromPath("custom", {
-            coerce: (param) => JSON.parse(param),
-        })
-        customParam: { value: string }
     ) {
         expect(typeof stringParam).to.equal("string")
         expect(typeof numberParam).to.equal("number")
         expect(typeof booleanParam).to.equal("boolean")
-        expect(typeof customParam).to.equal("object")
-        expect(customParam).to.haveOwnProperty("value")
         return {
             statusCode: 200,
             body: JSON.stringify({
                 string: stringParam,
                 number: numberParam,
                 boolean: booleanParam,
-                custom: customParam,
             }),
         }
     }
@@ -40,24 +33,16 @@ class TestController {
         @FromQuery("string") stringParam: string,
         @FromQuery("number") numberParam: number,
         @FromQuery("boolean") booleanParam: boolean,
-        @FromQuery("custom", {
-            required: true,
-            coerce: (param) => JSON.parse(param),
-        })
-        customParam: { value: string }
     ) {
         expect(typeof stringParam).to.equal("string")
         expect(typeof numberParam).to.equal("number")
         expect(typeof booleanParam).to.equal("boolean")
-        expect(typeof customParam).to.equal("object")
-        expect(customParam).to.haveOwnProperty("value")
         return {
             statusCode: 200,
             body: JSON.stringify({
                 string: stringParam,
                 number: numberParam,
                 boolean: booleanParam,
-                custom: customParam,
             }),
         }
     }
@@ -67,24 +52,16 @@ class TestController {
         @FromHeader("string") stringParam: string,
         @FromHeader("number") numberParam: number,
         @FromHeader("boolean") booleanParam: boolean,
-        @FromHeader("custom", {
-            required: true,
-            coerce: (param) => JSON.parse(param),
-        })
-        customParam: { value: string }
     ) {
         expect(typeof stringParam).to.equal("string")
         expect(typeof numberParam).to.equal("number")
         expect(typeof booleanParam).to.equal("boolean")
-        expect(typeof customParam).to.equal("object")
-        expect(customParam).to.haveOwnProperty("value")
         return {
             statusCode: 200,
             body: JSON.stringify({
                 string: stringParam,
                 number: numberParam,
                 boolean: booleanParam,
-                custom: customParam,
             }),
         }
     }
@@ -98,9 +75,6 @@ describe("request parsing tests", () => {
         string: "string",
         number: 5,
         boolean: true,
-        custom: {
-            value: "test",
-        },
     })
     it("coerces path parameters", async () => {
         const event = createAPIGatewayEvent({
@@ -110,7 +84,6 @@ describe("request parsing tests", () => {
                 string: "string",
                 number: "5",
                 boolean: "true",
-                custom: '{"value":"test"}',
             },
         })
 
@@ -128,7 +101,6 @@ describe("request parsing tests", () => {
                 string: "string",
                 number: "5",
                 boolean: "true",
-                custom: '{"value":"test"}',
             },
         })
 
@@ -146,7 +118,6 @@ describe("request parsing tests", () => {
                 string: "string",
                 number: "5",
                 boolean: "true",
-                custom: '{"value":"test"}',
             },
         })
 

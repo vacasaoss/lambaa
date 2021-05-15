@@ -10,9 +10,6 @@ export default function FromQuery(
     options: RequestOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
-        if (!options.coerce) {
-            options.coerce = getDefaultCoerce(target, propertyKey, index)
-        }
         const existing: any[] =
             Reflect.getOwnMetadata(
                 FROM_QUERY_METADATA_KEY,
@@ -20,7 +17,14 @@ export default function FromQuery(
                 propertyKey
             ) ?? []
 
-        existing.push({ name, index, options })
+        existing.push({
+            name,
+            index,
+            options: {
+                ...options,
+                coerce: getDefaultCoerce(target, propertyKey, index),
+            },
+        })
 
         Reflect.defineMetadata(
             FROM_QUERY_METADATA_KEY,
