@@ -5,7 +5,7 @@ import { RequestOptions } from "../types"
  * Extract and parse JSON data from the request body.
  */
 export default function FromBody(
-    options: Omit<RequestOptions, "coerce"> = { required: true }
+    options: RequestOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =
