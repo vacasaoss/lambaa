@@ -1,39 +1,72 @@
-import Route from "../src/decorators/Route"
-import FromPath from "../src/decorators/FromPath"
-import FromQuery from "../src/decorators/FromQuery"
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import { expect } from "chai"
+import Controller from "../src/decorators/Controller"
 import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
-import Router from "../src/Router"
-import { createLambdaContext, createAPIGatewayEvent } from "./testUtil"
-import { expect } from "chai"
-import RequestError from "../src/RequestError"
-import Controller from "../src/decorators/Controller"
+import FromPath from "../src/decorators/FromPath"
+import FromQuery from "../src/decorators/FromQuery"
+import Route from "../src/decorators/Route"
 import Use from "../src/decorators/Use"
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import RequestError from "../src/RequestError"
+import Router from "../src/Router"
+import { createAPIGatewayEvent, createLambdaContext } from "./testUtil"
 
 @Controller()
 class TestController {
     @Route("GET", "from_path_test")
-    public async fromPathTest(@FromPath("test") test: string) {
+    public async fromPathTest(
+        @FromPath("string") stringParam: string,
+        @FromPath("number") numberParam: number,
+        @FromPath("boolean") booleanParam: boolean
+    ) {
+        expect(typeof stringParam).to.equal("string")
+        expect(typeof numberParam).to.equal("number")
+        expect(typeof booleanParam).to.equal("boolean")
         return {
             statusCode: 200,
-            body: test,
+            body: JSON.stringify({
+                string: stringParam,
+                number: numberParam,
+                boolean: booleanParam,
+            }),
         }
     }
 
     @Route("GET", "from_query_test")
-    public async fromQueryTest(@FromQuery("test") test: string) {
+    public async fromQueryTest(
+        @FromQuery("string") stringParam: string,
+        @FromQuery("number") numberParam: number,
+        @FromQuery("boolean") booleanParam: boolean
+    ) {
+        expect(typeof stringParam).to.equal("string")
+        expect(typeof numberParam).to.equal("number")
+        expect(typeof booleanParam).to.equal("boolean")
         return {
             statusCode: 200,
-            body: test,
+            body: JSON.stringify({
+                string: stringParam,
+                number: numberParam,
+                boolean: booleanParam,
+            }),
         }
     }
 
     @Route("GET", "from_header_test")
-    public async fromHeaderTest(@FromHeader("test") test: string) {
+    public async fromHeaderTest(
+        @FromHeader("string") stringParam: string,
+        @FromHeader("number") numberParam: number,
+        @FromHeader("boolean") booleanParam: boolean
+    ) {
+        expect(typeof stringParam).to.equal("string")
+        expect(typeof numberParam).to.equal("number")
+        expect(typeof booleanParam).to.equal("boolean")
         return {
             statusCode: 200,
-            body: test,
+            body: JSON.stringify({
+                string: stringParam,
+                number: numberParam,
+                boolean: booleanParam,
+            }),
         }
     }
 
@@ -89,14 +122,22 @@ describe("request parsing tests", () => {
             resource: "from_path_test",
             method: "GET",
             pathParameters: {
-                test: "test_path_param",
+                string: "string",
+                number: "5",
+                boolean: "true",
             },
         })
 
         const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test_path_param")
+        expect(response.body).to.equal(
+            JSON.stringify({
+                string: "string",
+                number: 5,
+                boolean: true,
+            })
+        )
     })
 
     it("extracts query string parameter from request", async () => {
@@ -104,14 +145,22 @@ describe("request parsing tests", () => {
             resource: "from_query_test",
             method: "GET",
             queryStringParameters: {
-                test: "test_query_param",
+                string: "string",
+                number: "5",
+                boolean: "true",
             },
         })
 
         const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test_query_param")
+        expect(response.body).to.equal(
+            JSON.stringify({
+                string: "string",
+                number: 5,
+                boolean: true,
+            })
+        )
     })
 
     it("extracts header from request", async () => {
@@ -119,14 +168,22 @@ describe("request parsing tests", () => {
             resource: "from_header_test",
             method: "GET",
             headers: {
-                test: "test_header",
+                string: "string",
+                number: "5",
+                boolean: "true",
             },
         })
 
         const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test_header")
+        expect(response.body).to.equal(
+            JSON.stringify({
+                string: "string",
+                number: 5,
+                boolean: true,
+            })
+        )
     })
 
     it("extracts JSON body from request", async () => {
