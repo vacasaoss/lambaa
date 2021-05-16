@@ -1,4 +1,4 @@
-import getDefaultCoerce from "../coerce"
+import getCoercionFn from "../coerce"
 import { FROM_QUERY_METADATA_KEY } from "../constants"
 import { RequestOptions } from "../types"
 
@@ -22,7 +22,7 @@ export default function FromQuery(
             index,
             options: {
                 ...options,
-                coerce: getDefaultCoerce(target, propertyKey, index),
+                coerce: getCoercionFn(target, propertyKey, index),
             },
         })
 

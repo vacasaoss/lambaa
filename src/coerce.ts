@@ -1,4 +1,4 @@
-const getDefaultCoerce = (
+const getCoercionFn = (
     target: any,
     propertyKey: string | symbol,
     index: number
@@ -15,4 +15,4 @@ const getDefaultCoerce = (
         : (param) => param
 }
 
-export default getDefaultCoerce
+export default getCoercionFn
