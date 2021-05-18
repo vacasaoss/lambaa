@@ -18,5 +18,5 @@ export const isSqsEvent = (event: unknown): event is SQSEvent => {
 export const isScheduledEvent = (event: unknown): event is ScheduledEvent => {
     const e = event as ScheduledEvent
     // https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
-    return e?.["detail-type"].toLowerCase() === "scheduled event"
+    return e?.["detail-type"]?.toLowerCase() === "scheduled event"
 }
