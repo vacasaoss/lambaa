@@ -24,10 +24,10 @@ This library has the concept of controllers, similar to other web frameworks.
 
 To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](src/decorators/Route.ts), e.g. `@GET("/ping")`.
 
-> Currently only API Gateway and SQS events are supported.
+> Currently only API Gateway, Scheduled and SQS events are supported.
 
 ```typescript
-import { GET, SQS, Controller } from "lambaa"
+import { Controller, GET, Schedule, SQS } from "lambaa"
 import {
     APIGatewayProxyEvent,
     SQSEvent,
@@ -43,6 +43,12 @@ class TestController {
             statusCode: 200,
             body: "pong",
         }
+    }
+
+    @Schedule("arn:456")
+    public receive(event: ScheduledEvent): void {
+        // ...
+        return
     }
 
     @SQS("arn:123")
