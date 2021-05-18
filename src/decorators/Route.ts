@@ -1,6 +1,6 @@
-import { HTTPMethod } from "../types"
 import { ROUTE_HANDLER_METADATA_KEY } from "../constants"
 import RouteMap from "../RouteMap"
+import { HTTPMethod } from "../types"
 
 /**
  * Define a request handler route.
@@ -46,6 +46,29 @@ export function SQS(arn: string): MethodDecorator {
             new RouteMap()
 
         routeMap.addRoute({ eventType: "SQS", arn }, propertyKey)
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
+
+/**
+ * Define an Scheduled event handler.
+ * @param arn The ARN of the schedule.
+ * @see https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
+ */
+export function Scheduled(arn: string): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute({ eventType: "Scheduled", arn }, propertyKey)
 
         Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
 

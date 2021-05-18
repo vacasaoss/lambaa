@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, SQSEvent } from "aws-lambda"
+import { APIGatewayProxyEvent, ScheduledEvent, SQSEvent } from "aws-lambda"
 
 export const isApiGatewayEvent = (
     event: unknown
@@ -13,4 +13,10 @@ export const isSqsEvent = (event: unknown): event is SQSEvent => {
         e?.Records?.find(({ eventSource }) => eventSource === "aws:sqs") !==
         undefined
     )
+}
+
+export const isScheduledEvent = (event: unknown): event is ScheduledEvent => {
+    const e = event as ScheduledEvent
+    // https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
+    return e?.["detail-type"].toLowerCase() === "scheduled event"
 }

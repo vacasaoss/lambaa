@@ -9,6 +9,10 @@ type RouteProperties =
           eventType: "SQS"
           arn: string
       }
+    | {
+          eventType: "Scheduled"
+          arn: string
+      }
 
 /**
  * Used to store routing data on controllers.
@@ -29,9 +33,10 @@ export default class RouteMap {
                 `${route.resource}_${route.method}`,
                 propertyKey.toString()
             )
-
-            return
-        } else if (route.eventType === "SQS") {
+        } else if (
+            route.eventType === "SQS" ||
+            route.eventType === "Scheduled"
+        ) {
             this.map.set(route.arn, propertyKey.toString())
         }
     }
@@ -54,7 +59,7 @@ export default class RouteMap {
             }
 
             return this.map.get(`${route.resource}_${route.method}`)
-        } else if (route.eventType === "SQS") {
+        } else if (route.eventType === "SQS" || route.eventType === "Scheduled") {
             return this.map.get(route.arn)
         }
     }
