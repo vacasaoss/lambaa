@@ -42,9 +42,9 @@ class Router {
     public route(event: SQSEvent, context: Context): Promise<void>
 
     /**
-     *
-     * @param event
-     * @param context
+     * Route an incoming Scheduled event to a controller.
+     * @param event The Scheduled event.
+     * @param context The Lambda context.
      */
     public route(event: ScheduledEvent, context: Context): Promise<void>
 
