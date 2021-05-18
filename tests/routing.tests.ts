@@ -2,7 +2,7 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     ScheduledEvent,
-    SQSEvent
+    SQSEvent,
 } from "aws-lambda"
 import { expect } from "chai"
 import sinon from "sinon"
@@ -14,15 +14,15 @@ import Route, {
     PATCH,
     POST,
     PUT,
-    Scheduled,
-    SQS
+    Schedule,
+    SQS,
 } from "../src/decorators/Route"
 import Router from "../src/Router"
 import {
     createAPIGatewayEvent,
     createLambdaContext as createLambdaContext,
     createScheduledEvent,
-    createSQSEvent
+    createSQSEvent,
 } from "./testUtil"
 
 @Controller()
@@ -97,12 +97,19 @@ class TestController {
         expect(record?.eventSourceARN).to.equal("arn:234")
     }
 
-    @Scheduled("arn:123/schedule")
-    public async testScheduled(scheduledEvent: ScheduledEvent): Promise<void> {
+    @Schedule("arn:123/schedule")
+    public async testScheduled1(scheduledEvent: ScheduledEvent): Promise<void> {
         expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
             "scheduled event"
         )
         expect(scheduledEvent?.resources).to.include("arn:123/schedule")
+    }
+    @Schedule("arn:234/schedule")
+    public async testScheduled2(scheduledEvent: ScheduledEvent): Promise<void> {
+        expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
+            "scheduled event"
+        )
+        expect(scheduledEvent?.resources).to.include("arn:234/schedule")
     }
 }
 
@@ -350,6 +357,15 @@ describe("routing tests", () => {
         it("throws error if there is no handler for this arn", async () => {
             const event = createScheduledEvent("arn:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+        it("routes event with multiple resources", async () => {
+            const event = createScheduledEvent(
+                "arn:abc",
+                "arn:234/schedule",
+                "arn:123/schedule"
+            )
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
         })
     })
 })

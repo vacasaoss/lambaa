@@ -3,7 +3,7 @@ import {
     APIGatewayProxyEvent,
     Context,
     ScheduledEvent,
-    SQSEvent
+    SQSEvent,
 } from "aws-lambda"
 
 export const createAPIGatewayEvent = ({

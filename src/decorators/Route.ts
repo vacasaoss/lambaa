@@ -55,10 +55,10 @@ export function SQS(arn: string): MethodDecorator {
 
 /**
  * Define an Scheduled event handler.
- * @param arn The ARN of the schedule.
+ * @param arn The ARN of the event rule.
  * @see https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
  */
-export function Scheduled(arn: string): MethodDecorator {
+export function Schedule(arn: string): MethodDecorator {
     return (
         target: any,
         propertyKey: string | symbol,
@@ -68,7 +68,7 @@ export function Scheduled(arn: string): MethodDecorator {
             Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
             new RouteMap()
 
-        routeMap.addRoute({ eventType: "Scheduled", arn }, propertyKey)
+        routeMap.addRoute({ eventType: "Schedule", arn }, propertyKey)
 
         Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
 

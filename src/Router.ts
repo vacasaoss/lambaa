@@ -93,16 +93,20 @@ class Router {
 
                         if (method) {
                             debugMessage = `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                            break
                         }
                     }
                 } else if (isScheduledEvent(event)) {
-                    method = routeMap?.getRoute({
-                        eventType: "Scheduled",
-                        arn: event.resources[0],
-                    })
+                    for (const resource of event.resources) {
+                        method = routeMap?.getRoute({
+                            eventType: "Schedule",
+                            arn: resource,
+                        })
 
-                    if (method) {
-                        debugMessage = `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
+                        if (method) {
+                            debugMessage = `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
+                            break
+                        }
                     }
                 }
 

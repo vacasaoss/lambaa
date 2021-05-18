@@ -10,7 +10,7 @@ type RouteProperties =
           arn: string
       }
     | {
-          eventType: "Scheduled"
+          eventType: "Schedule"
           arn: string
       }
 
@@ -35,7 +35,7 @@ export default class RouteMap {
             )
         } else if (
             route.eventType === "SQS" ||
-            route.eventType === "Scheduled"
+            route.eventType === "Schedule"
         ) {
             this.map.set(route.arn, propertyKey.toString())
         }
@@ -59,7 +59,10 @@ export default class RouteMap {
             }
 
             return this.map.get(`${route.resource}_${route.method}`)
-        } else if (route.eventType === "SQS" || route.eventType === "Scheduled") {
+        } else if (
+            route.eventType === "SQS" ||
+            route.eventType === "Schedule"
+        ) {
             return this.map.get(route.arn)
         }
     }
