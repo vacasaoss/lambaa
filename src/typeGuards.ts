@@ -11,7 +11,7 @@ export const isApiGatewayProxyEvent = (
     event: unknown
 ): event is APIGatewayProxyEvent => {
     const e = event as APIGatewayProxyEvent
-    return e.resource?.includes("{+proxy}");
+    return e.resource?.includes("{proxy+}");
 }
 
 export const isSqsEvent = (event: unknown): event is SQSEvent => {
