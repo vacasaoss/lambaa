@@ -67,16 +67,6 @@ export const createAPIGatewayEvent = ({
     return eventTemplate
 }
 
-export const createAPIGatewayProxyEvent = (args: any) => {
-    const event = createAPIGatewayEvent(args)
-    return {
-        ...event,
-        path: args.path,
-        pathParameters: {},
-        resource: '{proxy+}'
-    }
-}
-
 export const createSQSEvent = (...arns: string[]): SQSEvent => ({
     Records: arns.map((arn) => ({
         eventSourceARN: arn,

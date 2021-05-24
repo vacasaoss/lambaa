@@ -1,6 +1,9 @@
 import { APIGatewayProxyEvent } from "aws-lambda"
 import { ROUTE_ARGS_METADATA_KEY } from "../constants"
 
+/**
+ * Define a new parameter decorator.
+ */
 export default function CreateParam<T>(
     func: (event: APIGatewayProxyEvent) => T
 ): () => ParameterDecorator {

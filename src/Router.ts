@@ -4,7 +4,7 @@ import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareF
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
-import { isApiGatewayEvent, isApiGatewayProxyEvent, isSqsEvent } from "./typeGuards"
+import { isApiGatewayEvent, isSqsEvent } from "./typeGuards"
 
 class Router {
     private registrations: RouterRegistration[]
@@ -47,12 +47,8 @@ class Router {
     ): Promise<TResult> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
-                const controllerOptions:
-                    | ControllerOptions
-                    | undefined = Reflect.getMetadata(
-                    CONTROLLER_METADATA_KEY,
-                    controller
-                )
+                const controllerOptions: ControllerOptions | undefined =
+                    Reflect.getMetadata(CONTROLLER_METADATA_KEY, controller)
 
                 if (!controllerOptions) {
                     continue
@@ -66,18 +62,12 @@ class Router {
                 let method: string | undefined
                 let debugMessage: string | undefined
 
-                if (isApiGatewayProxyEvent(event)){
-                    method = routeMap?.getRouteOverridePathParams(event);
-                    if (method) {
-                        debugMessage = `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
-                    }
-                } else if (isApiGatewayEvent(event)) {
-                    
+                if (isApiGatewayEvent(event)) {
                     method = routeMap?.getRoute({
                         eventType: "API_GATEWAY",
                         method: event.httpMethod,
                         resource: event.resource,
-                        basePath: controllerOptions.basePath
+                        basePath: controllerOptions.basePath,
                     })
 
                     if (method) {

@@ -145,6 +145,10 @@ const replaceFromHeaderArgs = (
     })
 }
 
+/**
+ * If any function created with 'CreateParam' decorator is applied to a parameter:
+ *  - Replace the `arg` at the CreateParam parameter index with the result from the applied function
+ */
 const replaceCustomArgs = (
     event: APIGatewayProxyEvent,
     target: any,
@@ -168,6 +172,7 @@ const replaceCustomArgs = (
  * - `@FromHeader()`
  * - `@FromPath()`
  * - `@FromQuery()`
+ * - any parameter created with 'CreateParam'
  */
 const replaceEventArgs = <TEvent>(
     event: TEvent,

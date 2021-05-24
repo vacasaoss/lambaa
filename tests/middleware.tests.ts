@@ -5,7 +5,7 @@ import {
 } from "aws-lambda"
 import Router from "../src/Router"
 import Route from "../src/decorators/Route"
-import { createLambdaContext, createAPIGatewayEvent, createAPIGatewayProxyEvent } from "./testUtil"
+import { createLambdaContext, createAPIGatewayEvent } from "./testUtil"
 import { expect } from "chai"
 import Controller from "../src/decorators/Controller"
 import { Middleware, Handler, MiddlewareFunction } from "../src/types"
@@ -48,16 +48,14 @@ class ReturnEarlyMiddleware implements Middleware {
     }
 }
 
-const getFunctionalMiddleware = (name: string): MiddlewareFunction => async (
-    event,
-    context,
-    next
-) => {
-    events.push(`${name}_pre_response`)
-    const response = await next(event, context)
-    events.push(`${name}_post_response`)
-    return response
-}
+const getFunctionalMiddleware =
+    (name: string): MiddlewareFunction =>
+    async (event, context, next) => {
+        events.push(`${name}_pre_response`)
+        const response = await next(event, context)
+        events.push(`${name}_post_response`)
+        return response
+    }
 
 @Controller()
 class TestController1 {
@@ -184,27 +182,6 @@ describe("middleware tests", () => {
     afterEach(() => {
         events = []
     })
-
-    it("routes through single middleware into proxy mode", async () => {
-        const event = createAPIGatewayProxyEvent({
-            path: "/test1",
-            method: "GET",
-        })
-
-        const router = new Router({
-            controllers: [new TestController1()],
-            middleware: [new TestMiddleware("middleware_1")],
-        })
-
-        const response = await router.route(event, context)
-
-        expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test1")
-        expect(events.shift()).to.equal("middleware_1_pre_response")
-        expect(events.shift()).to.equal("controller_1_test_1")
-        expect(events.shift()).to.equal("middleware_1_post_response")
-        expect(events.shift()).to.equal(undefined)
-    });
 
     it("routes through single middleware applied in the constructor", async () => {
         const event = createAPIGatewayEvent({
