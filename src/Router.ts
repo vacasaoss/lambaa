@@ -47,8 +47,12 @@ class Router {
     ): Promise<TResult> {
         for (const { controllers, middleware } of this.registrations) {
             for (const controller of controllers) {
-                const controllerOptions: ControllerOptions | undefined =
-                    Reflect.getMetadata(CONTROLLER_METADATA_KEY, controller)
+                const controllerOptions:
+                    | ControllerOptions
+                    | undefined = Reflect.getMetadata(
+                    CONTROLLER_METADATA_KEY,
+                    controller
+                )
 
                 if (!controllerOptions) {
                     continue

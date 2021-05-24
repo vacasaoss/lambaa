@@ -48,14 +48,16 @@ class ReturnEarlyMiddleware implements Middleware {
     }
 }
 
-const getFunctionalMiddleware =
-    (name: string): MiddlewareFunction =>
-    async (event, context, next) => {
-        events.push(`${name}_pre_response`)
-        const response = await next(event, context)
-        events.push(`${name}_post_response`)
-        return response
-    }
+const getFunctionalMiddleware = (name: string): MiddlewareFunction => async (
+    event,
+    context,
+    next
+) => {
+    events.push(`${name}_pre_response`)
+    const response = await next(event, context)
+    events.push(`${name}_post_response`)
+    return response
+}
 
 @Controller()
 class TestController1 {
