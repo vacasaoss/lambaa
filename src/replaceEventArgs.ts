@@ -6,6 +6,7 @@ import {
     FROM_QUERY_METADATA_KEY,
     FROM_PATH_METADATA_KEY,
     FROM_HEADER_METADATA_KEY,
+    ROUTE_ARGS_METADATA_KEY,
 } from "./constants"
 import { isApiGatewayEvent } from "./typeGuards"
 
@@ -144,6 +145,23 @@ const replaceFromHeaderArgs = (
     })
 }
 
+const replaceCustomArgs = (
+    event: APIGatewayProxyEvent,
+    target: any,
+    propertyKey: any,
+    args: any[]
+): void => {
+    const metadata: any[] = Reflect.getMetadata(
+        ROUTE_ARGS_METADATA_KEY,
+        target,
+        propertyKey
+    )
+
+    metadata?.forEach(({ index, func }) => {
+        args[index] = func(event)
+    })
+}
+
 /**
  * Replace the arguments with any request parameters specified using:
  * - `@FromBody()`
@@ -164,6 +182,7 @@ const replaceEventArgs = <TEvent>(
         replaceFromQueryArgs(event, target, propertyKey, args)
         replaceFromPathArgs(event, target, propertyKey, args)
         replaceFromHeaderArgs(event, target, propertyKey, args)
+        replaceCustomArgs(event, target, propertyKey, args)
     }
 
     return args

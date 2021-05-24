@@ -3,13 +3,32 @@ import FromPath from "../src/decorators/FromPath"
 import FromQuery from "../src/decorators/FromQuery"
 import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
+import CreateParam from "../src/decorators/CreateParam"
+
 import Router from "../src/Router"
-import { createLambdaContext, createAPIGatewayEvent , createAPIGatewayProxyEvent} from "./testUtil"
+import {
+    createLambdaContext,
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent,
+} from "./testUtil"
 import { expect } from "chai"
 import RequestError from "../src/RequestError"
 import Controller from "../src/decorators/Controller"
 import Use from "../src/decorators/Use"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import { APIGatewayProxyEventPathParameters } from "aws-lambda/trigger/api-gateway-proxy"
+
+const CustomParamForTest = CreateParam<{
+    httpMethod: string
+    pathParameters: APIGatewayProxyEventPathParameters | null
+    isCustom: boolean
+}>((e) => {
+    return {
+        httpMethod: e.httpMethod,
+        pathParameters: e.pathParameters,
+        isCustom: true,
+    }
+})
 
 @Controller()
 class TestController {
@@ -51,6 +70,37 @@ class TestController {
         return {
             statusCode: 200,
             body: JSON.stringify(body),
+        }
+    }
+
+    @Route("POST", "custom_param_test")
+    public async customParamTest(
+        @CustomParamForTest()
+        custom: {
+            httpMethod: string
+            pathParameters: APIGatewayProxyEventPathParameters | null
+            isCustom: boolean
+        }
+    ) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ custom }),
+        }
+    }
+
+    @Route("GET", "custom_param_test_with_path_params")
+    public async customParamTestWithParams(
+        @CustomParamForTest()
+        custom: {
+            httpMethod: string
+            pathParameters: APIGatewayProxyEventPathParameters | null
+            isCustom: boolean
+        },
+        @FromPath("test") test: string
+    ) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ custom, param: test }),
         }
     }
 
@@ -105,7 +155,7 @@ describe("request parsing tests", () => {
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test_path_param")
     })
-    
+
     it("extracts path parameter from request", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_path_test",
@@ -236,5 +286,37 @@ describe("request parsing tests", () => {
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("modified")
+    })
+
+    it("extracts custom param from request", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "custom_param_test",
+            method: "POST",
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        const body = JSON.parse(response.body)
+        expect(body.custom.isCustom).to.eql(true)
+        expect(body.custom.httpMethod).to.eql("POST")
+    })
+
+    it("extracts custom param from request with path params", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "custom_param_test_with_path_params",
+            method: "GET",
+            pathParameters: {
+                test: "test_path_param",
+            },
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        const body = JSON.parse(response.body)
+        expect(body.custom.isCustom).to.eql(true)
+        expect(body.custom.httpMethod).to.eql("GET")
+        expect(body.param).to.eql("test_path_param")
     })
 })
