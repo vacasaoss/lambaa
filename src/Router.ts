@@ -67,7 +67,10 @@ class Router {
                 let debugMessage: string | undefined
 
                 if (isApiGatewayProxyEvent(event)){
-                    method = routeMap?.getRouteOverridePathParams(event);
+                    method = routeMap?.getRouteOverridePathParams({
+                        event,
+                        basePath: controllerOptions.basePath
+                    });
                     if (method) {
                         debugMessage = `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
                     }

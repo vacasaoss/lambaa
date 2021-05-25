@@ -65,10 +65,14 @@ export default class RouteMap {
      * Get the name of the method which can handle this route but also
      * overrides event.pathParameters based on data extracted from the url
      */
-    public getRouteOverridePathParams(event: APIGatewayProxyEvent): string | undefined{
+    public getRouteOverridePathParams({event, basePath}: {
+        event: APIGatewayProxyEvent,
+        basePath: string | undefined
+    }): string | undefined{
         for (const [controllerPathKey, controllerKey] of this.map.entries()) {
             // isPathMatch overrides the current event.pathParams
-            if (this.isPathMatch(controllerPathKey, event)) {
+            const controllerComposedPath = basePath ? `${this.normalizePath(basePath)}${controllerPathKey}`: controllerPathKey;
+            if (this.isPathMatch(controllerComposedPath, event)) {
                 return controllerKey;
             }
         }
