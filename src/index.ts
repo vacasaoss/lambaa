@@ -1,5 +1,5 @@
 import "reflect-metadata"
-export { default as CreateParam } from "./decorators/CreateParam"
+export { default as DecodedParam } from "./decorators/DecodedParam"
 export { default as Use } from "./decorators/Use"
 export { default as Route } from "./decorators/Route"
 export { default as Controller } from "./decorators/Controller"

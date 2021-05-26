@@ -3,7 +3,7 @@ import FromPath from "../src/decorators/FromPath"
 import FromQuery from "../src/decorators/FromQuery"
 import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
-import CreateParam from "../src/decorators/CreateParam"
+import DecodedParam from "../src/decorators/DecodedParam"
 import Router from "../src/Router"
 import { createLambdaContext, createAPIGatewayEvent } from "./testUtil"
 import { expect } from "chai"
@@ -13,7 +13,7 @@ import Use from "../src/decorators/Use"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
 import { APIGatewayProxyEventPathParameters } from "aws-lambda/trigger/api-gateway-proxy"
 
-const CustomParamForTest = CreateParam<{
+const CustomParamForTest = DecodedParam<{
     httpMethod: string
     pathParameters: APIGatewayProxyEventPathParameters | null
     isCustom: boolean
