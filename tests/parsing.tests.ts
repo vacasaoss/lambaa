@@ -5,7 +5,7 @@ import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
 import DecodedParam from "../src/decorators/DecodedParam"
 import Router from "../src/Router"
-import { createLambdaContext, createAPIGatewayEvent } from "./testUtil"
+import { createLambdaContext, createAPIGatewayEvent , createAPIGatewayProxyEvent} from "./testUtil"
 import { expect } from "chai"
 import RequestError from "../src/RequestError"
 import Controller from "../src/decorators/Controller"
@@ -29,6 +29,15 @@ const CustomParamForTest = DecodedParam<{
 class TestController {
     @Route("GET", "from_path_test")
     public async fromPathTest(@FromPath("test") test: string) {
+        return {
+            statusCode: 200,
+            body: test,
+        }
+    }
+
+    // sorry about this, our proxy implementation doesn't not support snake cased urls at the moment
+    @Route("GET", "from-path-proxy-test/{test}")
+    public async fromPathProxyTest(@FromPath("test") test: string) {
         return {
             statusCode: 200,
             body: test,
@@ -129,6 +138,19 @@ const router = new Router({ controllers: [new TestController()] })
 const context = createLambdaContext()
 
 describe("request parsing tests", () => {
+
+    it("extracts path parameter from proxy request", async () => {
+        const event = createAPIGatewayProxyEvent({
+            path: "/from-path-proxy-test/test_path_param",
+            method: "GET",
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        expect(response.body).to.equal("test_path_param")
+    })
+    
     it("extracts path parameter from request", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_path_test",
