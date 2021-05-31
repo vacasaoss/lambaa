@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import { APIGatewayProxyEventPathParameters } from "aws-lambda/trigger/api-gateway-proxy"
 import { expect } from "chai"
 import Controller from "../src/decorators/Controller"
+import DecodedParam from "../src/decorators/DecodedParam"
 import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
 import FromPath from "../src/decorators/FromPath"
@@ -9,7 +11,22 @@ import Route from "../src/decorators/Route"
 import Use from "../src/decorators/Use"
 import RequestError from "../src/RequestError"
 import Router from "../src/Router"
-import { createAPIGatewayEvent, createLambdaContext } from "./testUtil"
+import {
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent, createLambdaContext
+} from "./testUtil"
+
+const CustomParamForTest = DecodedParam<{
+    httpMethod: string
+    pathParameters: APIGatewayProxyEventPathParameters | null
+    isCustom: boolean
+}>((e) => {
+    return {
+        httpMethod: e.httpMethod,
+        pathParameters: e.pathParameters,
+        isCustom: true,
+    }
+})
 
 @Controller()
 class TestController {
@@ -29,6 +46,15 @@ class TestController {
                 number: numberParam,
                 boolean: booleanParam,
             }),
+        }
+    }
+
+    // sorry about this, our proxy implementation doesn't not support snake cased urls at the moment
+    @Route("GET", "from-path-proxy-test/{test}")
+    public async fromPathProxyTest(@FromPath("test") test: string) {
+        return {
+            statusCode: 200,
+            body: test,
         }
     }
 
@@ -78,6 +104,37 @@ class TestController {
         }
     }
 
+    @Route("POST", "custom_param_test")
+    public async customParamTest(
+        @CustomParamForTest()
+        custom: {
+            httpMethod: string
+            pathParameters: APIGatewayProxyEventPathParameters | null
+            isCustom: boolean
+        }
+    ) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ custom }),
+        }
+    }
+
+    @Route("GET", "custom_param_test_with_path_params")
+    public async customParamTestWithParams(
+        @CustomParamForTest()
+        custom: {
+            httpMethod: string
+            pathParameters: APIGatewayProxyEventPathParameters | null
+            isCustom: boolean
+        },
+        @FromPath("test") test: string
+    ) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ custom, param: test }),
+        }
+    }
+
     @Route("GET", "use_middleware_test")
     @Use<APIGatewayProxyEvent, APIGatewayProxyResult>({
         invoke: async (event, context, next) => {
@@ -117,6 +174,18 @@ const router = new Router({ controllers: [new TestController()] })
 const context = createLambdaContext()
 
 describe("request parsing tests", () => {
+    it("extracts path parameter from proxy request", async () => {
+        const event = createAPIGatewayProxyEvent({
+            path: "/from-path-proxy-test/test_path_param",
+            method: "GET",
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        expect(response.body).to.equal("test_path_param")
+    })
+
     it("extracts path parameter from request", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_path_test",
@@ -271,5 +340,37 @@ describe("request parsing tests", () => {
 
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("modified")
+    })
+
+    it("extracts custom param from request", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "custom_param_test",
+            method: "POST",
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        const body = JSON.parse(response.body)
+        expect(body.custom.isCustom).to.eql(true)
+        expect(body.custom.httpMethod).to.eql("POST")
+    })
+
+    it("extracts custom param from request with path params", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "custom_param_test_with_path_params",
+            method: "GET",
+            pathParameters: {
+                test: "test_path_param",
+            },
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        const body = JSON.parse(response.body)
+        expect(body.custom.isCustom).to.eql(true)
+        expect(body.custom.httpMethod).to.eql("GET")
+        expect(body.param).to.eql("test_path_param")
     })
 })
