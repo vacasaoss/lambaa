@@ -1,3 +1,5 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
+
 type RouteProperties =
     | {
           eventType: "API_GATEWAY"
@@ -65,6 +67,62 @@ export default class RouteMap {
         ) {
             return this.map.get(route.arn)
         }
+    }
+
+    /**
+     * Get the name of the method which can handle this route but also
+     * overrides event.pathParameters based on data extracted from the url
+     */
+    public getRouteOverridePathParams({event, basePath}: {
+        event: APIGatewayProxyEvent,
+        basePath: string | undefined
+    }): string | undefined{
+        for (const [controllerPathKey, controllerKey] of this.map.entries()) {
+            // isPathMatch overrides the current event.pathParams
+            const controllerComposedPath = basePath ? `${this.normalizePath(basePath)}${controllerPathKey}`: controllerPathKey;
+            if (this.isPathMatch(controllerComposedPath, event)) {
+                return controllerKey;
+            }
+        }
+    }
+
+    /**
+     * Checks if the event.path matches one the url patterns avaible on
+     * the controller map.
+     * TODO: allow snake cased pattern match
+     */
+    private isPathMatch(
+        route: string,
+        event: APIGatewayProxyEvent
+    ): boolean {
+        const eventPathParts = event.path.split("/")
+        const routePathParts = route.split("_")[0].split("/")
+
+        // Fail fast if they're not the same length
+        if (eventPathParts.length !== routePathParts.length) {
+            return false
+        }
+
+        // Start with 1 because the url should always start with the first back slash
+        for (let i = 1; i < eventPathParts.length; ++i) {
+            const pathPart = eventPathParts[i]
+            const routePart = routePathParts[i]
+
+            // If the part is a curly braces value
+            const pathPartMatch = /\{(\w+)}/g.exec(routePart)
+            if (pathPartMatch) {
+                if (event?.pathParameters) {
+                    event.pathParameters[pathPartMatch[1]] = pathPart
+                }
+                continue
+            }
+
+            // Fail fast if a part doesn't match
+            if (routePart !== pathPart) {
+                return false
+            }
+        }
+        return true
     }
 
     private normalizePath(part: string): string {

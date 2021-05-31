@@ -3,8 +3,9 @@ import {
     APIGatewayProxyEvent,
     Context,
     ScheduledEvent,
-    SQSEvent,
-} from "aws-lambda"
+    SQSEvent
+} from "aws-lambda";
+import { APIGatewayEventFactoryArgs } from "./types";
 
 export const createAPIGatewayEvent = ({
     body,
@@ -13,14 +14,7 @@ export const createAPIGatewayEvent = ({
     pathParameters,
     queryStringParameters,
     headers,
-}: {
-    body?: string
-    resource?: string
-    method?: string
-    pathParameters?: { [name: string]: string }
-    queryStringParameters?: { [name: string]: string }
-    headers?: { [name: string]: string }
-} = {}): APIGatewayProxyEvent => {
+}: APIGatewayEventFactoryArgs = {}): APIGatewayProxyEvent => {
     const eventTemplate: APIGatewayProxyEvent = {
         resource: resource ?? "/test",
         path: "/v1",
@@ -70,6 +64,16 @@ export const createAPIGatewayEvent = ({
     }
 
     return eventTemplate
+}
+
+export const createAPIGatewayProxyEvent = (args: APIGatewayEventFactoryArgs): APIGatewayProxyEvent => {
+    const event = createAPIGatewayEvent(args)
+    return {
+        ...event,
+        path: args.path as string,
+        pathParameters: {},
+        resource: '{proxy+}'
+    }
 }
 
 export const createSQSEvent = (...arns: string[]): SQSEvent => ({

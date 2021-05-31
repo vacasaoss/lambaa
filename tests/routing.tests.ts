@@ -2,7 +2,7 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     ScheduledEvent,
-    SQSEvent,
+    SQSEvent
 } from "aws-lambda"
 import { expect } from "chai"
 import sinon from "sinon"
@@ -15,14 +15,14 @@ import Route, {
     POST,
     PUT,
     Schedule,
-    SQS,
+    SQS
 } from "../src/decorators/Route"
 import Router from "../src/Router"
 import {
     createAPIGatewayEvent,
-    createLambdaContext as createLambdaContext,
+    createAPIGatewayProxyEvent, createLambdaContext as createLambdaContext,
     createScheduledEvent,
-    createSQSEvent,
+    createSQSEvent
 } from "./testUtil"
 
 @Controller()
@@ -303,7 +303,7 @@ describe("routing tests", () => {
             expect(response.body).to.equal("test8")
         })
 
-        it("rotues when base path route has leading /", async () => {
+        it("routes when base path route has leading /", async () => {
             const event = createAPIGatewayEvent({
                 resource: "/test/9",
                 method: "GET",
@@ -318,6 +318,18 @@ describe("routing tests", () => {
         it("routes when base path route has no leading /", async () => {
             const event = createAPIGatewayEvent({
                 resource: "/test/10",
+                method: "GET",
+            })
+
+            const response = await handler(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test10")
+        })
+
+        it("routes when basePath is included on proxy event", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/test/10",
                 method: "GET",
             })
 
