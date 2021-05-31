@@ -11,3 +11,6 @@ updates:
           - "version/patch"
           - "dependencies"
       open-pull-requests-limit: 5
+      allow:
+          - dependency-name: "*"
+            dependency-type: "production"
