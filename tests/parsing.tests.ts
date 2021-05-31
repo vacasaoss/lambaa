@@ -13,7 +13,8 @@ import RequestError from "../src/RequestError"
 import Router from "../src/Router"
 import {
     createAPIGatewayEvent,
-    createAPIGatewayProxyEvent, createLambdaContext
+    createAPIGatewayProxyEvent,
+    createLambdaContext
 } from "./testUtil"
 
 const CustomParamForTest = DecodedParam<{
@@ -279,6 +280,22 @@ describe("request parsing tests", () => {
         ).to.eventually.be.rejectedWith(RequestError)
     })
 
+    it("throws error if coerced path parameter is NaN", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_path_test",
+            method: "GET",
+            pathParameters: {
+                string: "string",
+                number: "invalid",
+                boolean: "true",
+            },
+        })
+
+        await expect(
+            router.route(event, context)
+        ).to.eventually.be.rejectedWith(RequestError)
+    })
+
     it("throws error if query parameter is not provided", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_query_test",
@@ -290,10 +307,42 @@ describe("request parsing tests", () => {
         ).to.eventually.be.rejectedWith(RequestError)
     })
 
+    it("throws error if coerced query parameter is NaN", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_query_test",
+            method: "GET",
+            queryStringParameters: {
+                string: "string",
+                number: "invalid",
+                boolean: "true",
+            },
+        })
+
+        await expect(
+            router.route(event, context)
+        ).to.eventually.be.rejectedWith(RequestError)
+    })
+
     it("throws error if header is not provided", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_header_test",
             method: "GET",
+        })
+
+        await expect(
+            router.route(event, context)
+        ).to.eventually.be.rejectedWith(RequestError)
+    })
+
+    it("throws error if coerced header is NaN", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_header_test",
+            method: "GET",
+            headers: {
+                string: "string",
+                number: "invalid",
+                boolean: "true",
+            },
         })
 
         await expect(
