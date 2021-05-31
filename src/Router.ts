@@ -4,7 +4,7 @@ import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareF
 import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
 import RouteMap from "./RouteMap"
 import replaceEventArgs from "./replaceEventArgs"
-import { isApiGatewayEvent, isSqsEvent } from "./typeGuards"
+import { isApiGatewayEvent, isApiGatewayProxyEvent, isSqsEvent } from "./typeGuards"
 
 class Router {
     private registrations: RouterRegistration[]
@@ -66,12 +66,21 @@ class Router {
                 let method: string | undefined
                 let debugMessage: string | undefined
 
-                if (isApiGatewayEvent(event)) {
+                if (isApiGatewayProxyEvent(event)){
+                    method = routeMap?.getRouteOverridePathParams({
+                        event,
+                        basePath: controllerOptions.basePath
+                    });
+                    if (method) {
+                        debugMessage = `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
+                    }
+                } else if (isApiGatewayEvent(event)) {
+                    
                     method = routeMap?.getRoute({
                         eventType: "API_GATEWAY",
                         method: event.httpMethod,
                         resource: event.resource,
-                        basePath: controllerOptions.basePath,
+                        basePath: controllerOptions.basePath
                     })
 
                     if (method) {
