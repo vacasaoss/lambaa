@@ -134,6 +134,22 @@ class TestController3 {
             body: "test10",
         }
     }
+
+    @API("PUT", "10")
+    public async test10PUT(): Promise<APIGatewayProxyResult> {
+        return {
+            statusCode: 200,
+            body: "test10PUT",
+        }
+    }
+
+    @API("POST", "10")
+    public async test10POST(): Promise<APIGatewayProxyResult> {
+        return {
+            statusCode: 200,
+            body: "test10POST",
+        }
+    }
 }
 
 const router = new Router({
@@ -320,6 +336,30 @@ describe("routing tests", () => {
 
             expect(response.statusCode).to.equal(200)
             expect(response.body).to.equal("test10")
+        })
+
+        it("routes PUT method when basePath is included on proxy event", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/test/10",
+                method: "PUT",
+            })
+
+            const response = await handler(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test10PUT")
+        })
+
+        it("routes POST method when basePath is included on proxy event", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/test/10",
+                method: "POST",
+            })
+
+            const response = await handler(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test10POST")
         })
     })
 
