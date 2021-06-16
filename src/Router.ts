@@ -1,27 +1,40 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, SQSEvent } from "aws-lambda" // prettier-ignore
-import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction } from "./types" // prettier-ignore
-import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
-import RouteMap from "./RouteMap"
+import {
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult,
+    Context,
+    SQSEvent,
+} from "aws-lambda"
+import {
+    CONTROLLER_METADATA_KEY,
+    ROUTE_HANDLER_METADATA_KEY,
+} from "./constants"
 import replaceEventArgs from "./replaceEventArgs"
-import { isApiGatewayEvent, isApiGatewayProxyEvent, isSqsEvent } from "./typeGuards"
+import RouteMap from "./RouteMap"
+import {
+    isApiGatewayProxyEvent,
+    isApiGatewayEvent,
+    isSqsEvent,
+} from "./typeGuards"
+import {
+    Middleware,
+    MiddlewareFunction,
+    ControllerOptions,
+    Handler,
+    MiddlewarePipeline,
+} from "./types"
 
-class Router {
-    private registrations: RouterRegistration[]
+export default class Router {
+    private middleware: MiddlewarePipeline = []
+    private controllers: any[] = []
 
-    constructor(...registrations: RouterRegistration[]) {
-        this.registrations = registrations
+    public registerMiddleware(...middleware: MiddlewarePipeline): Router {
+        this.middleware.push(...middleware)
+        return this
     }
 
-    /**
-     * Get a Lambda event handler.
-     */
-    public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
-        TEvent,
-        TResult
-    > {
-        return (event: TEvent, context: Context): Promise<TResult> =>
-            this.route(event as any, context) as any
+    public registerController(...controllers: any[]): Router {
+        this.controllers.push(...controllers)
+        return this
     }
 
     /**
@@ -41,103 +54,19 @@ class Router {
      */
     public route(event: SQSEvent, context: Context): Promise<void>
 
-    public async route<TEvent, TResult>(
-        event: TEvent,
-        context: Context
-    ): Promise<TResult> {
-        for (const { controllers, middleware } of this.registrations) {
-            for (const controller of controllers) {
-                const controllerOptions:
-                    | ControllerOptions
-                    | undefined = Reflect.getMetadata(
-                    CONTROLLER_METADATA_KEY,
-                    controller
-                )
-
-                if (!controllerOptions) {
-                    continue
-                }
-
-                const routeMap: RouteMap | undefined = Reflect.getMetadata(
-                    ROUTE_HANDLER_METADATA_KEY,
-                    controller
-                )
-
-                let method: string | undefined
-                let debugMessage: string | undefined
-
-                if (isApiGatewayProxyEvent(event)){
-                    method = routeMap?.getRouteOverridePathParams({
-                        event,
-                        basePath: controllerOptions.basePath
-                    });
-                    if (method) {
-                        debugMessage = `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
-                    }
-                } else if (isApiGatewayEvent(event)) {
-                    
-                    method = routeMap?.getRoute({
-                        eventType: "API_GATEWAY",
-                        method: event.httpMethod,
-                        resource: event.resource,
-                        basePath: controllerOptions.basePath
-                    })
-
-                    if (method) {
-                        debugMessage = `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
-                    }
-                } else if (isSqsEvent(event) && event.Records.length > 0) {
-                    for (const record of event.Records) {
-                        method = routeMap?.getRoute({
-                            eventType: "SQS",
-                            arn: record.eventSourceARN,
-                        })
-
-                        if (method) {
-                            debugMessage = `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
-                            break
-                        }
-                    }
-                }
-
-                if (!method) {
-                    continue
-                }
-
-                if (
-                    debugMessage &&
-                    process.env.DEBUG?.toLowerCase() === "true"
-                ) {
-                    console.debug(debugMessage)
-                }
-
-                const pipeline = [
-                    ...(middleware ?? []),
-                    ...(controllerOptions.middleware ?? []),
-                ].reverse() // Reverse to ensure middlewares are executed in the correct order
-
-                return this.invoke(
-                    event,
-                    context,
-                    (e, c) =>
-                        this.executeRouteHandler(controller, method!, e, c),
-                    pipeline
-                )
-            }
-        }
-
-        throw new Error("No configured route for this event")
+    public async route(event: unknown, context: Context): Promise<unknown> {
+        const pipeline = this.middleware.reverse()
+        return this.invoke(event, context, pipeline, (e: unknown, c: Context) =>
+            this.passToController(e, c)
+        )
     }
 
-    /**
-     * Execute the middleware pipeline.
-     */
     private invoke(
-        event: any,
+        event: unknown,
         context: Context,
-        handler: Handler<any, any>,
-        pipeline: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
-    ): Promise<any> {
+        pipeline: MiddlewarePipeline,
+        handler: Handler<unknown, unknown>
+    ): Promise<unknown> {
         const middleware = pipeline.pop()
 
         if (!middleware) {
@@ -145,29 +74,118 @@ class Router {
         }
 
         const next = (e: any, c: Context) =>
-            this.invoke(e, c, handler, pipeline)
+            this.invoke(e, c, pipeline, handler)
 
         return "invoke" in middleware
             ? middleware.invoke(event, context, next)
             : middleware(event, context, next)
     }
 
-    /**
-     * Extract request parameters and pass to the route handler.
-     */
-    private executeRouteHandler(
-        controller: any,
-        method: string,
-        event: any,
+    private passToController(
+        event: unknown,
         context: Context
-    ): Promise<any> {
-        const args = replaceEventArgs(event, controller, method, [
-            event,
-            context,
-        ])
+    ): Promise<unknown> {
+        const routable = this.findRoutable(event)
 
-        return controller[method](...[...args, event, context])
+        if (routable) {
+            const { controller, method, options } = routable
+            const args = replaceEventArgs(event, controller, method, [
+                event,
+                context,
+            ])
+
+            const pipeline = options.middleware?.reverse() ?? []
+
+            return this.invoke(
+                event,
+                context,
+                pipeline,
+                (e: unknown, c: Context) =>
+                    controller[method](...[...args, e, c])
+            )
+        }
+
+        throw new Error("No configured route for this event")
+    }
+
+    private findRoutable(event: unknown):
+        | {
+              controller: any
+              method: string
+              options: ControllerOptions
+          }
+        | undefined {
+        for (const controller of this.controllers) {
+            const options: ControllerOptions | undefined = Reflect.getMetadata(
+                CONTROLLER_METADATA_KEY,
+                controller
+            )
+
+            if (!options) {
+                continue
+            }
+
+            const routeMap: RouteMap | undefined = Reflect.getMetadata(
+                ROUTE_HANDLER_METADATA_KEY,
+                controller
+            )
+
+            let method: string | undefined
+
+            if (isApiGatewayProxyEvent(event)) {
+                method = routeMap?.getRouteOverridePathParams({
+                    event,
+                    basePath: options.basePath,
+                })
+
+                if (method) {
+                    this.logDebugMessage(
+                        `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
+                    )
+
+                    return { controller, method, options }
+                }
+            }
+
+            if (isApiGatewayEvent(event)) {
+                method = routeMap?.getRoute({
+                    eventType: "API_GATEWAY",
+                    method: event.httpMethod,
+                    resource: event.resource,
+                    basePath: options.basePath,
+                })
+
+                if (method) {
+                    this.logDebugMessage(
+                        `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
+                    )
+
+                    return { controller, method, options }
+                }
+            }
+
+            if (isSqsEvent(event) && event.Records.length > 0) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "SQS",
+                        arn: record.eventSourceARN,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+        }
+    }
+
+    private logDebugMessage(debugMessage: string) {
+        if (debugMessage && process.env.DEBUG?.toLowerCase() === "true") {
+            console.debug(debugMessage)
+        }
     }
 }
-
-export default Router
