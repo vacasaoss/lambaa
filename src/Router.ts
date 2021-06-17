@@ -15,13 +15,7 @@ import {
     isApiGatewayEvent,
     isSqsEvent,
 } from "./typeGuards"
-import {
-    Middleware,
-    MiddlewareFunction,
-    ControllerOptions,
-    Handler,
-    MiddlewarePipeline,
-} from "./types"
+import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
 export default class Router {
     private middleware: MiddlewarePipeline = []
@@ -32,9 +26,25 @@ export default class Router {
         return this
     }
 
-    public registerController(...controllers: any[]): Router {
+    public registerController(controller: any): Router {
+        this.controllers.push(controller)
+        return this
+    }
+
+    public registerControllers(controllers: any[]): Router {
         this.controllers.push(...controllers)
         return this
+    }
+
+    /**
+     * Get a Lambda event handler.
+     */
+    public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
+        TEvent,
+        TResult
+    > {
+        return (event: TEvent, context: Context): Promise<TResult> =>
+            this.route(event as any, context) as any
     }
 
     /**

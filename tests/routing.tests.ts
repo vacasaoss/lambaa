@@ -152,13 +152,11 @@ class TestController3 {
     }
 }
 
-const router = new Router({
-    controllers: [
-        new TestController(),
-        new TestController2(),
-        new TestController3(),
-    ],
-})
+const router = new Router().registerControllers([
+    new TestController(),
+    new TestController2(),
+    new TestController3(),
+])
 
 const handler = router.getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
 const context = createLambdaContext()
