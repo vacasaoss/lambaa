@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent } from "aws-lambda"
 
 type RouteProperties =
     | {
@@ -65,15 +65,20 @@ export default class RouteMap {
      * Get the name of the method which can handle this route but also
      * overrides event.pathParameters based on data extracted from the url
      */
-    public getRouteOverridePathParams({event, basePath}: {
-        event: APIGatewayProxyEvent,
+    public getRouteOverridePathParams({
+        event,
+        basePath,
+    }: {
+        event: APIGatewayProxyEvent
         basePath: string | undefined
-    }): string | undefined{
+    }): string | undefined {
         for (const [controllerPathKey, controllerKey] of this.map.entries()) {
             // isPathMatch overrides the current event.pathParams
-            const controllerComposedPath = basePath ? `${this.normalizePath(basePath)}${controllerPathKey}`: controllerPathKey;
+            const controllerComposedPath = basePath
+                ? `${this.normalizePath(basePath)}${controllerPathKey}`
+                : controllerPathKey
             if (this.isPathMatch(controllerComposedPath, event)) {
-                return controllerKey;
+                return controllerKey
             }
         }
     }
@@ -83,16 +88,16 @@ export default class RouteMap {
      * the controller map.
      * TODO: allow snake cased pattern match
      */
-    private isPathMatch(
-        route: string,
-        event: APIGatewayProxyEvent
-    ): boolean {
+    private isPathMatch(route: string, event: APIGatewayProxyEvent): boolean {
         const eventPathParts = event.path.split("/")
-        const routeMethod = route.split("_")[1];
+        const routeMethod = route.split("_")[1]
         const routePathParts = route.split("_")[0].split("/")
 
         // Fail fast if they're not the same length
-        if (eventPathParts.length !== routePathParts.length || routeMethod !== event.httpMethod) {
+        if (
+            eventPathParts.length !== routePathParts.length ||
+            routeMethod !== event.httpMethod
+        ) {
             return false
         }
 

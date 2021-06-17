@@ -18,10 +18,12 @@ import {
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
 export default class Router {
-    private middleware: MiddlewarePipeline = []
+    private middleware: MiddlewarePipeline<any, any> = []
     private controllers: any[] = []
 
-    public registerMiddleware(...middleware: MiddlewarePipeline): Router {
+    public registerMiddleware(
+        ...middleware: MiddlewarePipeline<any, any>
+    ): Router {
         this.middleware.push(...middleware)
         return this
     }
