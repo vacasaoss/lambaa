@@ -191,7 +191,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal(undefined)
         })
 
-        it("routes through single middleware applied in using the @Controller() decorator", async () => {
+        it("routes through single middleware applied using the @Controller() decorator", async () => {
             const event = createAPIGatewayProxyEvent({
                 path: "/test-controller-with-single-middleware/test1",
                 method: "GET",
