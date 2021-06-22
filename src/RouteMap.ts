@@ -96,10 +96,11 @@ export default class RouteMap {
         event: APIGatewayProxyEvent
     ): boolean {
         const eventPathParts = event.path.split("/")
+        const routeMethod = route.split("_")[1];
         const routePathParts = route.split("_")[0].split("/")
 
         // Fail fast if they're not the same length
-        if (eventPathParts.length !== routePathParts.length) {
+        if (eventPathParts.length !== routePathParts.length || routeMethod !== event.httpMethod) {
             return false
         }
 
