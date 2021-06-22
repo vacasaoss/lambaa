@@ -1,9 +1,14 @@
+import getCoercionFn from "../coerce"
 import { FROM_PATH_METADATA_KEY } from "../constants"
+import { RequestOptions } from "../types"
 
 /**
  * Extract a parameter from the request resource path.
  */
-export default function FromPath(name: string): ParameterDecorator {
+export default function FromPath(
+    name: string,
+    options: Omit<RequestOptions, "required"> = {}
+): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =
             Reflect.getOwnMetadata(
@@ -12,7 +17,14 @@ export default function FromPath(name: string): ParameterDecorator {
                 propertyKey
             ) ?? []
 
-        existing.push({ name, index })
+        existing.push({
+            name,
+            index,
+            options: {
+                ...options,
+                coerce: getCoercionFn(target, propertyKey, index),
+            },
+        })
 
         Reflect.defineMetadata(
             FROM_PATH_METADATA_KEY,

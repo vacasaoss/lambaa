@@ -1,7 +1,7 @@
 import {
-    Context,
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
+    Context
 } from "aws-lambda"
 
 export interface RequestOptions {
@@ -20,6 +20,7 @@ export type RequestErrorCode =
     | "MISSING_QUERY_PARAMETER"
     | "MISSING_REQUEST_DATA"
     | "MISSING_HEADER"
+    | "INVALID_REQUEST_DATA"
 
 /**
  * Defines a middleware invoke function.

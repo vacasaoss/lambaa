@@ -1,5 +1,5 @@
-import { RequestOptions } from "../types"
 import { FROM_BODY_METADATA_KEY } from "../constants"
+import { RequestOptions } from "../types"
 
 /**
  * Extract and parse JSON data from the request body.
