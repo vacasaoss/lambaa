@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, SQSEvent } from "aws-lambda" // prettier-ignore
-import { Middleware, RouterRegistration, ControllerOptions, Handler, MiddlewareFunction } from "./types" // prettier-ignore
-import { ROUTE_HANDLER_METADATA_KEY, CONTROLLER_METADATA_KEY } from "./constants" // prettier-ignore
-import RouteMap from "./RouteMap"
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, ScheduledEvent, SQSEvent } from "aws-lambda" // prettier-ignore
+import { CONTROLLER_METADATA_KEY, ROUTE_HANDLER_METADATA_KEY } from "./constants" // prettier-ignore
 import replaceEventArgs from "./replaceEventArgs"
-import { isApiGatewayEvent, isApiGatewayProxyEvent, isSqsEvent } from "./typeGuards"
+import RouteMap from "./RouteMap"
+import { isApiGatewayEvent, isApiGatewayProxyEvent, isScheduledEvent, isSqsEvent } from "./typeGuards"
+import { ControllerOptions, Handler, Middleware, MiddlewareFunction, RouterRegistration } from "./types" // prettier-ignore
 
 class Router {
     private registrations: RouterRegistration[]
@@ -40,6 +40,13 @@ class Router {
      * @param context The Lambda context.
      */
     public route(event: SQSEvent, context: Context): Promise<void>
+
+    /**
+     * Route an incoming Scheduled event to a controller.
+     * @param event The Scheduled event.
+     * @param context The Lambda context.
+     */
+    public route(event: ScheduledEvent, context: Context): Promise<void>
 
     public async route<TEvent, TResult>(
         event: TEvent,
@@ -95,6 +102,18 @@ class Router {
 
                         if (method) {
                             debugMessage = `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                            break
+                        }
+                    }
+                } else if (isScheduledEvent(event)) {
+                    for (const resource of event.resources) {
+                        method = routeMap?.getRoute({
+                            eventType: "Schedule",
+                            arn: resource,
+                        })
+
+                        if (method) {
+                            debugMessage = `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
                             break
                         }
                     }
