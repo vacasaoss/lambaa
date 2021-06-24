@@ -32,6 +32,19 @@ class TestMiddleware implements Middleware {
     }
 }
 
+class TestMiddlewareReturns implements Middleware {
+    constructor(private name: string) {}
+    public async invoke(
+        _event: APIGatewayProxyEvent,
+        _context: Context,
+        _next: Handler
+    ): Promise<APIGatewayProxyResult> {
+        expect(this).to.exist
+        events.push(`middleware-returns-${this.name}`)
+        return { statusCode: 200, body: "" }
+    }
+}
+
 // @Controller()
 // class TestControllerWithSingleMiddleware {
 //     @GET("")
@@ -156,6 +169,37 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
             expect(events.shift()).to.equal("testControllerWithNoMiddleware2Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+        })
+
+        it("Executes middleware even if no route is found", async () => {
+            const event = createAPIGatewayEvent({
+                method: "GET",
+                resource: "notFound",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithNoMiddleware1())
+                .registerMiddleware(new TestMiddleware("1"))
+                .registerMiddleware(new TestMiddleware("2"))
+                .registerMiddleware(new TestMiddleware("3"))
+                .registerMiddleware(new TestMiddleware("4"))
+
+            // This middleware terminate the pipeline early, before the controller method lookup happens
+            router.registerMiddleware(new TestMiddlewareReturns("1"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-4-pre")
+            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-4-post")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
