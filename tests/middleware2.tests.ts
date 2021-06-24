@@ -73,6 +73,20 @@ class TestControllerWithMultipleMiddleware1 {
     }
 }
 
+@Controller([
+    new TestMiddleware("1"),
+    new TestMiddleware("2"),
+    new TestMiddleware("3"),
+    new TestMiddlewareReturns("1"),
+])
+class TestControllerWithReturnEarlyMiddleware {
+    @GET("testControllerWithReturnEarlyMiddlewarePing1")
+    public ping1() {
+        events.push("testControllerWithReturnEarlyMiddlewarePing1")
+        return { statusCode: 200, body: "" }
+    }
+}
+
 @Controller()
 class TestControllerWithNoMiddleware1 {
     @GET("/testControllerWithNoMiddleware1Ping1")
@@ -110,7 +124,7 @@ describe("middleware tests", () => {
 
     // describe("API Gateway proxy mode", () => {})
 
-    describe("router", () => {
+    describe("router.registerMiddleware(...)", () => {
         it("routes through single middleware", async () => {
             const event = createAPIGatewayEvent({
                 method: "GET",
@@ -214,7 +228,7 @@ describe("middleware tests", () => {
         })
     })
 
-    describe("decorator", () => {
+    describe("@Controller([...])", () => {
         it("routes through single middleware", async () => {
             const event = createAPIGatewayEvent({
                 resource: "testControllerWithSingleMiddleware1Ping1",
@@ -257,7 +271,28 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-post")
         })
 
-        // it("executes middleware pipeline even if no route is registered", async () => {})
+        it("returns early from controller middleware", async () => {
+            const event = createAPIGatewayEvent({
+                method: "GET",
+                resource: "testControllerWithReturnEarlyMiddlewarePing1",
+            })
+
+            const router = new Router().registerController(
+                new TestControllerWithReturnEarlyMiddleware()
+            )
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+        })
     })
 
     // describe("router + decorator", () => {})
