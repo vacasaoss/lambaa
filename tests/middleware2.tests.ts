@@ -295,5 +295,33 @@ describe("middleware tests", () => {
         })
     })
 
-    // describe("router + decorator", () => {})
+    describe("router + decorator", () => {
+        it("routes through multiple middleware", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithMultipleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithMultipleMiddleware1())
+                .registerMiddleware(new TestMiddleware("4"))
+                .registerMiddleware(new TestMiddleware("5"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-4-pre")
+            expect(events.shift()).to.equal("middleware-5-pre")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.equal("middleware-5-post")
+            expect(events.shift()).to.equal("middleware-4-post")
+        })
+    })
 })
