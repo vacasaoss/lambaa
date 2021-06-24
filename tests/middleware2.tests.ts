@@ -45,14 +45,20 @@ class TestMiddlewareReturns implements Middleware {
     }
 }
 
-// @Controller()
-// class TestControllerWithSingleMiddleware {
-//     @GET("")
-//     public ping() {
-//         events.push("controller-1")
-//         return { statusCode: 200, body: "" }
-//     }
-// }
+@Controller(new TestMiddleware("1"))
+class TestControllerWithSingleMiddleware1 {
+    @GET("testControllerWithSingleMiddleware1Ping1")
+    public ping1() {
+        events.push("testControllerWithSingleMiddleware1Ping1")
+        return { statusCode: 200, body: "" }
+    }
+
+    @GET("testControllerWithSingleMiddleware1Ping2")
+    public ping2() {
+        events.push("testControllerWithSingleMiddleware1Ping2")
+        return { statusCode: 200, body: "" }
+    }
+}
 
 // @Controller()
 // class TestControllerWithMultipleMiddleware {
@@ -108,9 +114,8 @@ describe("middleware tests", () => {
             })
 
             const router = new Router()
-
-            router.registerController(new TestControllerWithNoMiddleware1())
-            router.registerMiddleware(new TestMiddleware("1"))
+                .registerController(new TestControllerWithNoMiddleware1())
+                .registerMiddleware(new TestMiddleware("1"))
 
             const response = await router.route(event, context)
 
@@ -154,12 +159,11 @@ describe("middleware tests", () => {
             })
 
             const router = new Router()
-
-            router.registerController(new TestControllerWithNoMiddleware1())
-            router.registerController(new TestControllerWithNoMiddleware2())
-            router.registerMiddleware(new TestMiddleware("1"))
-            router.registerMiddleware(new TestMiddleware("2"))
-            router.registerMiddleware(new TestMiddleware("3"))
+                .registerController(new TestControllerWithNoMiddleware1())
+                .registerController(new TestControllerWithNoMiddleware2())
+                .registerMiddleware(new TestMiddleware("1"))
+                .registerMiddleware(new TestMiddleware("2"))
+                .registerMiddleware(new TestMiddleware("3"))
 
             const response = await router.route(event, context)
 
@@ -174,7 +178,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-post")
         })
 
-        it("Executes middleware even if no route is found", async () => {
+        it("executes middleware pipeline even if no route is found", async () => {
             const event = createAPIGatewayEvent({
                 method: "GET",
                 resource: "notFound",
@@ -206,7 +210,30 @@ describe("middleware tests", () => {
         })
     })
 
-    // describe("decorator", () => {})
+    describe("decorator", () => {
+        it("routes through single middleware", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithSingleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router().registerController(
+                new TestControllerWithSingleMiddleware1()
+            )
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("testControllerWithSingleMiddleware1Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-1-post")
+        })
+
+        // it("routes through multiple middleware", async () => {})
+
+        // it("executes middleware pipeline even if no route is registered", async () => {})
+    })
 
     // describe("router + decorator", () => {})
 })
