@@ -71,6 +71,15 @@ class TestControllerWithNoMiddleware1 {
     }
 }
 
+@Controller()
+class TestControllerWithNoMiddleware2 {
+    @GET("/testControllerWithNoMiddleware2Ping1")
+    public ping1() {
+        events.push("testControllerWithNoMiddleware2Ping1")
+        return { statusCode: 200, body: "" }
+    }
+}
+
 describe("middleware tests", () => {
     afterEach(() => {
         events = []
@@ -125,15 +134,16 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-post")
         })
 
-        it("routes through multiple middleware when multiple controller registered", async () => {
+        it("routes through multiple middleware when multiple controllers are registered", async () => {
             const event = createAPIGatewayEvent({
                 method: "GET",
-                resource: "testControllerWithNoMiddleware1Ping3",
+                resource: "testControllerWithNoMiddleware2Ping1",
             })
 
             const router = new Router()
 
             router.registerController(new TestControllerWithNoMiddleware1())
+            router.registerController(new TestControllerWithNoMiddleware2())
             router.registerMiddleware(new TestMiddleware("1"))
             router.registerMiddleware(new TestMiddleware("2"))
             router.registerMiddleware(new TestMiddleware("3"))
@@ -145,7 +155,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
-            expect(events.shift()).to.equal("testControllerWithNoMiddleware1Ping3") // prettier-ignore
+            expect(events.shift()).to.equal("testControllerWithNoMiddleware2Ping1") // prettier-ignore
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
