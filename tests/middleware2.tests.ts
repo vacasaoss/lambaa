@@ -60,14 +60,18 @@ class TestControllerWithSingleMiddleware1 {
     }
 }
 
-// @Controller()
-// class TestControllerWithMultipleMiddleware {
-//     @GET("")
-//     public ping() {
-//         events.push("controller-2")
-//         return { statusCode: 200, body: "" }
-//     }
-// }
+@Controller([
+    new TestMiddleware("1"),
+    new TestMiddleware("2"),
+    new TestMiddleware("3"),
+])
+class TestControllerWithMultipleMiddleware1 {
+    @GET("testControllerWithMultipleMiddleware1Ping1")
+    public ping1() {
+        events.push("testControllerWithMultipleMiddleware1Ping1")
+        return { statusCode: 200, body: "" }
+    }
+}
 
 @Controller()
 class TestControllerWithNoMiddleware1 {
@@ -230,7 +234,28 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-post")
         })
 
-        // it("routes through multiple middleware", async () => {})
+        it("routes through multiple middleware", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithMultipleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router().registerController(
+                new TestControllerWithMultipleMiddleware1()
+            )
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+        })
 
         // it("executes middleware pipeline even if no route is registered", async () => {})
     })
