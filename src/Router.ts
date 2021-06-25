@@ -121,9 +121,7 @@ export default class Router {
         throw new Error("No configured route for this event")
     }
 
-    private findRoutable(
-        event: unknown
-    ):
+    private findRoutable(event: unknown):
         | {
               controller: any
               method: string
