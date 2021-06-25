@@ -142,6 +142,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("testControllerWithNoMiddleware1Ping1") // prettier-ignore
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
 
         it("routes through multiple middleware", async () => {
@@ -168,6 +169,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
 
         it("routes through multiple middleware when multiple controllers are registered", async () => {
@@ -194,6 +196,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
 
         it("executes middleware pipeline even if no route is found", async () => {
@@ -225,6 +228,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
     })
 
@@ -311,17 +315,55 @@ describe("middleware tests", () => {
 
             expect(response.statusCode).to.equal(200)
             expect(response.body).to.equal("")
+
+            // Routes through router middleware first
             expect(events.shift()).to.equal("middleware-4-pre")
             expect(events.shift()).to.equal("middleware-5-pre")
+
+            // Next routes through controller middleware
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
+
             expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+
+            // Back through controller middleware
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+
+            // Back through router middleware
             expect(events.shift()).to.equal("middleware-5-post")
             expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
         })
+
+        it("returns early from middleware registered using the router", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithSingleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithSingleMiddleware1())
+                .registerMiddleware(new TestMiddleware("2"))
+                .registerMiddleware(new TestMiddleware("3"))
+                .registerMiddleware(new TestMiddlewareReturns("1"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.be.undefined
+        })
+
+        // it("returns early from middleware registered using the controller decorator", async () => {})
+
+        // it("routes when multiple middleware are registered", async () => {})
     })
 })
