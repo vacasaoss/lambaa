@@ -6,6 +6,7 @@ import {
 import { expect } from "chai"
 import Controller from "../src/decorators/Controller"
 import { GET } from "../src/decorators/Route"
+import Use from "../src/decorators/Use"
 import Router from "../src/Router"
 import { Handler, Middleware } from "../src/types"
 import { createAPIGatewayEvent, createLambdaContext } from "./testUtil"
@@ -59,6 +60,13 @@ class TestControllerWithSingleMiddleware1 {
     @GET("testControllerWithSingleMiddleware1Ping2")
     public ping2() {
         events.push("testControllerWithSingleMiddleware1Ping2")
+        return { statusCode: 200, body: "" }
+    }
+
+    @GET("testControllerWithUseMiddleware")
+    @Use(new TestMiddleware("2"))
+    public ping3() {
+        events.push("testControllerWithUseMiddleware")
         return { statusCode: 200, body: "" }
     }
 }
@@ -432,6 +440,32 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-post")
             expect(events.shift()).to.equal("middleware-5-post")
             expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
+        })
+    })
+
+    describe("routes + decorator + use", () => {
+        it("routes through multiple middleware", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithUseMiddleware",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithSingleMiddleware1())
+                .registerMiddleware(new TestMiddleware("3"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("testControllerWithUseMiddleware") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.be.undefined
         })
     })
