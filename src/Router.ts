@@ -79,14 +79,15 @@ export default class Router {
         pipeline: MiddlewarePipeline,
         handler: Handler<unknown, unknown>
     ): Promise<unknown> {
-        const middleware = pipeline.pop()
+        const pipelineCopy = [...pipeline]
+        const middleware = pipelineCopy.pop()
 
         if (!middleware) {
             return handler(event, context)
         }
 
         const next = (e: any, c: Context) =>
-            this.invoke(e, c, pipeline, handler)
+            this.invoke(e, c, pipelineCopy, handler)
 
         return "invoke" in middleware
             ? middleware.invoke(event, context, next)
@@ -106,7 +107,7 @@ export default class Router {
                 context,
             ])
 
-            const pipeline = options.middleware?.reverse() ?? []
+            const pipeline = [...(options.middleware ?? [])].reverse()
 
             return this.invoke(
                 event,
@@ -120,7 +121,9 @@ export default class Router {
         throw new Error("No configured route for this event")
     }
 
-    private findRoutable(event: unknown):
+    private findRoutable(
+        event: unknown
+    ):
         | {
               controller: any
               method: string

@@ -12,8 +12,9 @@
         "dist"
     ],
     "scripts": {
-        "prettier": "prettier --write './**/*.{ts,json,md}'",
+        "build": "tsc",
         "prepare": "tsc",
+        "prettier": "prettier --write './**/*.{ts,json,md}'",
         "lint": "eslint --config '.eslintrc.json' 'src/**/*.ts'",
         "test": "mocha \"tests/**/*.tests.ts\"",
         "coverage": "nyc mocha \"tests/**/*.tests.ts\""
