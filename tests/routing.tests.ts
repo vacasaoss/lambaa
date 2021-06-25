@@ -1,27 +1,29 @@
 import {
-    APIGatewayProxyResult,
     APIGatewayProxyEvent,
-    SQSEvent,
+    APIGatewayProxyResult,
+    ScheduledEvent,
+    SQSEvent
 } from "aws-lambda"
-import Route, {
-    GET,
-    POST,
-    DELETE,
-    PATCH,
-    PUT,
-    SQS,
-    API,
-} from "../src/decorators/Route"
-import Controller from "../src/decorators/Controller"
-import Router from "../src/Router"
-import {
-    createLambdaContext as createLambdaContext,
-    createAPIGatewayEvent,
-    createAPIGatewayProxyEvent,
-    createSQSEvent,
-} from "./testUtil"
 import { expect } from "chai"
 import sinon from "sinon"
+import Controller from "../src/decorators/Controller"
+import Route, {
+    API,
+    DELETE,
+    GET,
+    PATCH,
+    POST,
+    PUT,
+    Schedule,
+    SQS
+} from "../src/decorators/Route"
+import Router from "../src/Router"
+import {
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent, createLambdaContext as createLambdaContext,
+    createScheduledEvent,
+    createSQSEvent
+} from "./testUtil"
 
 @Controller()
 class TestController {
@@ -93,6 +95,21 @@ class TestController {
             ({ eventSourceARN }) => eventSourceARN === "arn:234"
         )
         expect(record?.eventSourceARN).to.equal("arn:234")
+    }
+
+    @Schedule("arn:123/schedule")
+    public async testScheduled1(scheduledEvent: ScheduledEvent): Promise<void> {
+        expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
+            "scheduled event"
+        )
+        expect(scheduledEvent?.resources).to.include("arn:123/schedule")
+    }
+    @Schedule("arn:234/schedule")
+    public async testScheduled2(scheduledEvent: ScheduledEvent): Promise<void> {
+        expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
+            "scheduled event"
+        )
+        expect(scheduledEvent?.resources).to.include("arn:234/schedule")
     }
 }
 
@@ -361,7 +378,7 @@ describe("routing tests", () => {
         })
     })
 
-    describe("it routes SQS event", () => {
+    describe("it routes SQS events", () => {
         it("routes event", async () => {
             const event = createSQSEvent("arn:123")
             const response = await router.route(event, context)
@@ -375,6 +392,28 @@ describe("routing tests", () => {
 
         it("routes event with multiple records", async () => {
             const event = createSQSEvent("arn:abc", "arn:234", "arn:123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+    })
+
+    describe("it routes Scheduled events", () => {
+        it("routes event", async () => {
+            const event = createScheduledEvent("arn:123/schedule")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createScheduledEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+        it("routes event with multiple resources", async () => {
+            const event = createScheduledEvent(
+                "arn:abc",
+                "arn:234/schedule",
+                "arn:123/schedule"
+            )
             const response = await router.route(event, context)
             expect(response).to.be.undefined
         })
