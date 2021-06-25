@@ -9,7 +9,11 @@ import { GET } from "../src/decorators/Route"
 import Use from "../src/decorators/Use"
 import Router from "../src/Router"
 import { Handler, Middleware } from "../src/types"
-import { createAPIGatewayEvent, createLambdaContext } from "./testUtil"
+import {
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent,
+    createLambdaContext,
+} from "./testUtil"
 
 /**
  * Track execution events, e.g. middleware execution, post/pre-response.
@@ -147,13 +151,31 @@ describe("middleware tests", () => {
         events = []
     })
 
-    // describe("API Gateway proxy mode", () => {})
-
     describe("router.registerMiddleware(...)", () => {
         it("routes through single middleware", async () => {
             const event = createAPIGatewayEvent({
                 method: "GET",
                 resource: "testControllerWithNoMiddleware1Ping1",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithNoMiddleware1())
+                .registerMiddleware(new TestMiddleware("1"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("testControllerWithNoMiddleware1Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
+        })
+
+        it("routes through single middleware into proxy mode", async () => {
+            const event = createAPIGatewayProxyEvent({
+                method: "GET",
+                path: "/testControllerWithNoMiddleware1Ping1",
             })
 
             const router = new Router()
@@ -346,7 +368,7 @@ describe("middleware tests", () => {
         })
     })
 
-    describe("router + decorator", () => {
+    describe("router.registerMiddleware(...) + @Controller(...)", () => {
         it("routes through multiple middleware", async () => {
             const event = createAPIGatewayEvent({
                 resource: "testControllerWithMultipleMiddleware1Ping1",
@@ -444,7 +466,7 @@ describe("middleware tests", () => {
         })
     })
 
-    describe("routes + decorator + use", () => {
+    describe("router.registerMiddleware(...) + @Controller(...) + @Use(...)", () => {
         it("routes through multiple middleware", async () => {
             const event = createAPIGatewayEvent({
                 resource: "testControllerWithUseMiddleware",
