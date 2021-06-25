@@ -362,8 +362,38 @@ describe("middleware tests", () => {
             expect(events.shift()).to.be.undefined
         })
 
-        // it("returns early from middleware registered using the controller decorator", async () => {})
+        it("returns early from middleware registered using the controller decorator", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithReturnEarlyMiddlewarePing1",
+                method: "GET",
+            })
 
-        // it("routes when multiple middleware are registered", async () => {})
+            const router = new Router()
+
+            router.registerController(
+                new TestControllerWithReturnEarlyMiddleware()
+            )
+
+            router
+                .registerMiddleware(new TestMiddleware("4"))
+                .registerMiddleware(new TestMiddleware("5"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-4-pre")
+            expect(events.shift()).to.equal("middleware-5-pre")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.equal("middleware-5-post")
+            expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
+        })
     })
 })
