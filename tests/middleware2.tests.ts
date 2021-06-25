@@ -13,7 +13,11 @@ import { createAPIGatewayEvent, createLambdaContext } from "./testUtil"
 /**
  * Track execution events, e.g. middleware execution, post/pre-response.
  */
-let events: string[] = []
+let events: (
+    | `middleware-${string}-pre`
+    | `middleware-${string}-post`
+    | `testController${string}`
+)[] = []
 
 const context = createLambdaContext()
 
@@ -33,14 +37,13 @@ class TestMiddleware implements Middleware {
 }
 
 class TestMiddlewareReturns implements Middleware {
-    constructor(private name: string) {}
     public async invoke(
         _event: APIGatewayProxyEvent,
         _context: Context,
         _next: Handler
     ): Promise<APIGatewayProxyResult> {
         expect(this).to.exist
-        events.push(`middleware-returns-${this.name}`)
+        events.push(`middleware-returns-pre`)
         return { statusCode: 200, body: "" }
     }
 }
@@ -56,6 +59,20 @@ class TestControllerWithSingleMiddleware1 {
     @GET("testControllerWithSingleMiddleware1Ping2")
     public ping2() {
         events.push("testControllerWithSingleMiddleware1Ping2")
+        return { statusCode: 200, body: "" }
+    }
+}
+
+@Controller(async (event, context, next) => {
+    events.push("middleware-functional-pre")
+    const response = await next(event, context)
+    events.push("middleware-functional-post")
+    return response
+})
+class TestControllerWithFunctionalMiddleware {
+    @GET("testControllerWithFuncionalMiddlewarePing1")
+    public ping1() {
+        events.push("testControllerWithFuncionalMiddlewarePing1")
         return { statusCode: 200, body: "" }
     }
 }
@@ -77,7 +94,7 @@ class TestControllerWithMultipleMiddleware1 {
     new TestMiddleware("1"),
     new TestMiddleware("2"),
     new TestMiddleware("3"),
-    new TestMiddlewareReturns("1"),
+    new TestMiddlewareReturns(),
 ])
 class TestControllerWithReturnEarlyMiddleware {
     @GET("testControllerWithReturnEarlyMiddlewarePing1")
@@ -213,7 +230,7 @@ describe("middleware tests", () => {
                 .registerMiddleware(new TestMiddleware("4"))
 
             // This middleware terminate the pipeline early, before the controller method lookup happens
-            router.registerMiddleware(new TestMiddlewareReturns("1"))
+            router.registerMiddleware(new TestMiddlewareReturns())
 
             const response = await router.route(event, context)
 
@@ -223,7 +240,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
             expect(events.shift()).to.equal("middleware-4-pre")
-            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-4-post")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
@@ -292,10 +309,32 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
-            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+        })
+
+        it("routes through middleware applied using the functional style", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithFuncionalMiddlewarePing1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithFunctionalMiddleware())
+                .registerMiddleware(new TestMiddleware("1")) // prettier-ignore
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-functional-pre")
+            expect(events.shift()).to.equal("testControllerWithFuncionalMiddlewarePing1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-functional-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
     })
 
@@ -348,7 +387,7 @@ describe("middleware tests", () => {
                 .registerController(new TestControllerWithSingleMiddleware1())
                 .registerMiddleware(new TestMiddleware("2"))
                 .registerMiddleware(new TestMiddleware("3"))
-                .registerMiddleware(new TestMiddlewareReturns("1"))
+                .registerMiddleware(new TestMiddlewareReturns())
 
             const response = await router.route(event, context)
 
@@ -356,7 +395,7 @@ describe("middleware tests", () => {
             expect(response.body).to.equal("")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
-            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.be.undefined
@@ -387,7 +426,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
-            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
