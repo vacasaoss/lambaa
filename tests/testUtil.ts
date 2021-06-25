@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { APIGatewayProxyEvent, Context, SQSEvent } from "aws-lambda"
+import {
+    APIGatewayProxyEvent,
+    ScheduledEvent,
+    Context,
+    SQSEvent,
+} from "aws-lambda"
 import { APIGatewayEventFactoryArgs } from "./types"
 
 export const createAPIGatewayEvent = ({
