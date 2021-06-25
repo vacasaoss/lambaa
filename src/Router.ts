@@ -15,6 +15,7 @@ import {
     isApiGatewayProxyEvent,
     isApiGatewayEvent,
     isSqsEvent,
+    isScheduledEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -197,6 +198,23 @@ export default class Router {
                     if (method) {
                         this.logDebugMessage(
                             `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isScheduledEvent(event)) {
+                for (const resource of event.resources) {
+                    method = routeMap?.getRoute({
+                        eventType: "Schedule",
+                        arn: resource,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
                         )
 
                         return { controller, method, options }
