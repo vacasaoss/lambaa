@@ -407,6 +407,44 @@ describe("middleware tests", () => {
             expect(events.shift()).to.be.undefined
         })
 
+        it("routes through multiple middleware into proxy mode", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/testControllerWithMultipleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithMultipleMiddleware1())
+                .registerMiddleware(new TestMiddleware("4"))
+                .registerMiddleware(new TestMiddleware("5"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+
+            // Routes through router middleware first
+            expect(events.shift()).to.equal("middleware-4-pre")
+            expect(events.shift()).to.equal("middleware-5-pre")
+
+            // Next routes through controller middleware
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+
+            expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+
+            // Back through controller middleware
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+
+            // Back through router middleware
+            expect(events.shift()).to.equal("middleware-5-post")
+            expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
+        })
+
         it("returns early from middleware registered using the router", async () => {
             const event = createAPIGatewayEvent({
                 resource: "testControllerWithSingleMiddleware1Ping1",
