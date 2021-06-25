@@ -2,6 +2,7 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     Context,
+    ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
 import {
@@ -58,6 +59,13 @@ export default class Router {
         event: APIGatewayProxyEvent,
         context: Context
     ): Promise<APIGatewayProxyResult>
+
+    /**
+     * Route a scheduled event to a controller.
+     * @param event The scheduled event.
+     * @param context The Lambda context.
+     */
+    public route(event: ScheduledEvent, context: Context): Promise<void>
 
     /**
      * Route an incoming SQS event to a controller.
