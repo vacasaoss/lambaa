@@ -2,6 +2,7 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     Context,
+    ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
 import {
@@ -14,6 +15,7 @@ import {
     isApiGatewayProxyEvent,
     isApiGatewayEvent,
     isSqsEvent,
+    isScheduledEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -60,6 +62,13 @@ export default class Router {
     ): Promise<APIGatewayProxyResult>
 
     /**
+     * Route a scheduled event to a controller.
+     * @param event The scheduled event.
+     * @param context The Lambda context.
+     */
+    public route(event: ScheduledEvent, context: Context): Promise<void>
+
+    /**
      * Route an incoming SQS event to a controller.
      * @param event The SQS event.
      * @param context The Lambda context.
@@ -79,14 +88,15 @@ export default class Router {
         pipeline: MiddlewarePipeline,
         handler: Handler<unknown, unknown>
     ): Promise<unknown> {
-        const middleware = pipeline.pop()
+        const pipelineCopy = [...pipeline]
+        const middleware = pipelineCopy.pop()
 
         if (!middleware) {
             return handler(event, context)
         }
 
         const next = (e: any, c: Context) =>
-            this.invoke(e, c, pipeline, handler)
+            this.invoke(e, c, pipelineCopy, handler)
 
         return "invoke" in middleware
             ? middleware.invoke(event, context, next)
@@ -106,7 +116,7 @@ export default class Router {
                 context,
             ])
 
-            const pipeline = options.middleware?.reverse() ?? []
+            const pipeline = [...(options.middleware ?? [])].reverse()
 
             return this.invoke(
                 event,
@@ -120,7 +130,9 @@ export default class Router {
         throw new Error("No configured route for this event")
     }
 
-    private findRoutable(event: unknown):
+    private findRoutable(
+        event: unknown
+    ):
         | {
               controller: any
               method: string
@@ -186,6 +198,23 @@ export default class Router {
                     if (method) {
                         this.logDebugMessage(
                             `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isScheduledEvent(event)) {
+                for (const resource of event.resources) {
+                    method = routeMap?.getRoute({
+                        eventType: "Schedule",
+                        arn: resource,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
                         )
 
                         return { controller, method, options }

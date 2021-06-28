@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { APIGatewayProxyEvent, Context, SQSEvent } from "aws-lambda"
-import { APIGatewayEventFactoryArgs } from "./types";
+import {
+    APIGatewayProxyEvent,
+    ScheduledEvent,
+    Context,
+    SQSEvent,
+} from "aws-lambda"
+import { APIGatewayEventFactoryArgs } from "./types"
 
 export const createAPIGatewayEvent = ({
     body,
@@ -61,13 +66,15 @@ export const createAPIGatewayEvent = ({
     return eventTemplate
 }
 
-export const createAPIGatewayProxyEvent = (args: APIGatewayEventFactoryArgs): APIGatewayProxyEvent => {
+export const createAPIGatewayProxyEvent = (
+    args: APIGatewayEventFactoryArgs
+): APIGatewayProxyEvent => {
     const event = createAPIGatewayEvent(args)
     return {
         ...event,
         path: args.path as string,
         pathParameters: {},
-        resource: '{proxy+}'
+        resource: "{proxy+}",
     }
 }
 
@@ -89,6 +96,18 @@ export const createSQSEvent = (...arns: string[]): SQSEvent => ({
         eventSource: "aws:sqs",
         awsRegion: "",
     })),
+})
+
+export const createScheduledEvent = (...arns: string[]): ScheduledEvent => ({
+    version: "0",
+    account: "123456789012",
+    region: "us-east-2",
+    detail: {},
+    "detail-type": "Scheduled Event",
+    source: "aws.events",
+    time: "2019-03-01T01:23:45Z",
+    id: "cdc73f9d-aea9-11e3-9d5a-835b769c0d9c",
+    resources: arns,
 })
 
 export const createLambdaContext = (): Context => ({

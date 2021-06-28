@@ -12,8 +12,9 @@
         "dist"
     ],
     "scripts": {
-        "prettier": "prettier --write './**/*.{ts,json,md}'",
+        "build": "tsc",
         "prepare": "tsc",
+        "prettier": "prettier --write './**/*.{ts,json,md}'",
         "lint": "eslint --config '.eslintrc.json' 'src/**/*.ts'",
         "test": "mocha \"tests/**/*.tests.ts\"",
         "coverage": "nyc mocha \"tests/**/*.tests.ts\""
@@ -50,7 +51,7 @@
         "sinon": "^10.0.0",
         "sinon-chai": "^3.6.0",
         "ts-node": "^10.0.0",
-        "typescript": "^4.2.4"
+        "typescript": "^4.3.4"
     },
     "dependencies": {
         "reflect-metadata": "^0.1.13"

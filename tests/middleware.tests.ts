@@ -6,14 +6,23 @@ import {
 import { expect } from "chai"
 import Controller from "../src/decorators/Controller"
 import { GET } from "../src/decorators/Route"
+import Use from "../src/decorators/Use"
 import Router from "../src/Router"
 import { Handler, Middleware } from "../src/types"
-import { createAPIGatewayEvent, createLambdaContext } from "./testUtil"
+import {
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent,
+    createLambdaContext,
+} from "./testUtil"
 
 /**
  * Track execution events, e.g. middleware execution, post/pre-response.
  */
-let events: string[] = []
+let events: (
+    | `middleware-${string}-pre`
+    | `middleware-${string}-post`
+    | `testController${string}`
+)[] = []
 
 const context = createLambdaContext()
 
@@ -33,14 +42,13 @@ class TestMiddleware implements Middleware {
 }
 
 class TestMiddlewareReturns implements Middleware {
-    constructor(private name: string) {}
     public async invoke(
         _event: APIGatewayProxyEvent,
         _context: Context,
         _next: Handler
     ): Promise<APIGatewayProxyResult> {
         expect(this).to.exist
-        events.push(`middleware-returns-${this.name}`)
+        events.push(`middleware-returns-pre`)
         return { statusCode: 200, body: "" }
     }
 }
@@ -56,6 +64,27 @@ class TestControllerWithSingleMiddleware1 {
     @GET("testControllerWithSingleMiddleware1Ping2")
     public ping2() {
         events.push("testControllerWithSingleMiddleware1Ping2")
+        return { statusCode: 200, body: "" }
+    }
+
+    @GET("testControllerWithUseMiddleware")
+    @Use(new TestMiddleware("2"))
+    public ping3() {
+        events.push("testControllerWithUseMiddleware")
+        return { statusCode: 200, body: "" }
+    }
+}
+
+@Controller(async (event, context, next) => {
+    events.push("middleware-functional-pre")
+    const response = await next(event, context)
+    events.push("middleware-functional-post")
+    return response
+})
+class TestControllerWithFunctionalMiddleware {
+    @GET("testControllerWithFuncionalMiddlewarePing1")
+    public ping1() {
+        events.push("testControllerWithFuncionalMiddlewarePing1")
         return { statusCode: 200, body: "" }
     }
 }
@@ -77,7 +106,7 @@ class TestControllerWithMultipleMiddleware1 {
     new TestMiddleware("1"),
     new TestMiddleware("2"),
     new TestMiddleware("3"),
-    new TestMiddlewareReturns("1"),
+    new TestMiddlewareReturns(),
 ])
 class TestControllerWithReturnEarlyMiddleware {
     @GET("testControllerWithReturnEarlyMiddlewarePing1")
@@ -122,8 +151,6 @@ describe("middleware tests", () => {
         events = []
     })
 
-    // describe("API Gateway proxy mode", () => {})
-
     describe("router.registerMiddleware(...)", () => {
         it("routes through single middleware", async () => {
             const event = createAPIGatewayEvent({
@@ -142,6 +169,27 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("testControllerWithNoMiddleware1Ping1") // prettier-ignore
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
+        })
+
+        it("routes through single middleware into proxy mode", async () => {
+            const event = createAPIGatewayProxyEvent({
+                method: "GET",
+                path: "/testControllerWithNoMiddleware1Ping1",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithNoMiddleware1())
+                .registerMiddleware(new TestMiddleware("1"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("testControllerWithNoMiddleware1Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
 
         it("routes through multiple middleware", async () => {
@@ -168,6 +216,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
 
         it("routes through multiple middleware when multiple controllers are registered", async () => {
@@ -194,6 +243,7 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
 
         it("executes middleware pipeline even if no route is found", async () => {
@@ -210,7 +260,7 @@ describe("middleware tests", () => {
                 .registerMiddleware(new TestMiddleware("4"))
 
             // This middleware terminate the pipeline early, before the controller method lookup happens
-            router.registerMiddleware(new TestMiddlewareReturns("1"))
+            router.registerMiddleware(new TestMiddlewareReturns())
 
             const response = await router.route(event, context)
 
@@ -220,11 +270,12 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
             expect(events.shift()).to.equal("middleware-4-pre")
-            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-4-post")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
         })
     })
 
@@ -288,14 +339,36 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
-            expect(events.shift()).to.equal("middleware-returns-1")
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
         })
+
+        it("routes through middleware applied using the functional style", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithFuncionalMiddlewarePing1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithFunctionalMiddleware())
+                .registerMiddleware(new TestMiddleware("1")) // prettier-ignore
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-functional-pre")
+            expect(events.shift()).to.equal("testControllerWithFuncionalMiddlewarePing1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-functional-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.be.undefined
+        })
     })
 
-    describe("router + decorator", () => {
+    describe("router.registerMiddleware(...) + @Controller(...)", () => {
         it("routes through multiple middleware", async () => {
             const event = createAPIGatewayEvent({
                 resource: "testControllerWithMultipleMiddleware1Ping1",
@@ -311,17 +384,149 @@ describe("middleware tests", () => {
 
             expect(response.statusCode).to.equal(200)
             expect(response.body).to.equal("")
+
+            // Routes through router middleware first
+            expect(events.shift()).to.equal("middleware-4-pre")
+            expect(events.shift()).to.equal("middleware-5-pre")
+
+            // Next routes through controller middleware
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+
+            expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+
+            // Back through controller middleware
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+
+            // Back through router middleware
+            expect(events.shift()).to.equal("middleware-5-post")
+            expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
+        })
+
+        it("routes through multiple middleware into proxy mode", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/testControllerWithMultipleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithMultipleMiddleware1())
+                .registerMiddleware(new TestMiddleware("4"))
+                .registerMiddleware(new TestMiddleware("5"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+
+            // Routes through router middleware first
+            expect(events.shift()).to.equal("middleware-4-pre")
+            expect(events.shift()).to.equal("middleware-5-pre")
+
+            // Next routes through controller middleware
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+
+            expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+
+            // Back through controller middleware
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+
+            // Back through router middleware
+            expect(events.shift()).to.equal("middleware-5-post")
+            expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
+        })
+
+        it("returns early from middleware registered using the router", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithSingleMiddleware1Ping1",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithSingleMiddleware1())
+                .registerMiddleware(new TestMiddleware("2"))
+                .registerMiddleware(new TestMiddleware("3"))
+                .registerMiddleware(new TestMiddlewareReturns())
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-returns-pre")
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.be.undefined
+        })
+
+        it("returns early from middleware registered using the controller decorator", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithReturnEarlyMiddlewarePing1",
+                method: "GET",
+            })
+
+            const router = new Router()
+
+            router.registerController(
+                new TestControllerWithReturnEarlyMiddleware()
+            )
+
+            router
+                .registerMiddleware(new TestMiddleware("4"))
+                .registerMiddleware(new TestMiddleware("5"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
             expect(events.shift()).to.equal("middleware-4-pre")
             expect(events.shift()).to.equal("middleware-5-pre")
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
             expect(events.shift()).to.equal("middleware-3-pre")
-            expect(events.shift()).to.equal("testControllerWithMultipleMiddleware1Ping1") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-returns-pre")
             expect(events.shift()).to.equal("middleware-3-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
             expect(events.shift()).to.equal("middleware-5-post")
             expect(events.shift()).to.equal("middleware-4-post")
+            expect(events.shift()).to.be.undefined
+        })
+    })
+
+    describe("router.registerMiddleware(...) + @Controller(...) + @Use(...)", () => {
+        it("routes through multiple middleware", async () => {
+            const event = createAPIGatewayEvent({
+                resource: "testControllerWithUseMiddleware",
+                method: "GET",
+            })
+
+            const router = new Router()
+                .registerController(new TestControllerWithSingleMiddleware1())
+                .registerMiddleware(new TestMiddleware("3"))
+
+            const response = await router.route(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("")
+            expect(events.shift()).to.equal("middleware-3-pre")
+            expect(events.shift()).to.equal("middleware-1-pre")
+            expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("testControllerWithUseMiddleware") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-2-post")
+            expect(events.shift()).to.equal("middleware-1-post")
+            expect(events.shift()).to.equal("middleware-3-post")
+            expect(events.shift()).to.be.undefined
         })
     })
 })

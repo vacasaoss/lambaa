@@ -24,10 +24,10 @@ This library has the concept of controllers, similar to other web frameworks.
 
 To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](src/decorators/Route.ts), e.g. `@GET("/ping")`.
 
-> Currently only API Gateway and SQS events are supported.
+> Currently only API Gateway, Scheduled and SQS events are supported.
 
 ```typescript
-import { GET, SQS, Controller } from "lambaa"
+import { Controller, GET, Schedule, SQS } from "lambaa"
 import {
     APIGatewayProxyEvent,
     SQSEvent,
@@ -45,6 +45,12 @@ class TestController {
         }
     }
 
+    @Schedule("arn:456")
+    public receive(event: ScheduledEvent): void {
+        // ...
+        return
+    }
+
     @SQS("arn:123")
     public receive(event: SQSEvent): void {
         // ...
@@ -60,9 +66,7 @@ Create an `index.ts` file and export the handler.
 ```typescript
 import { Router } from "lambaa"
 
-const router = new Router({
-    controllers: [new PingController()],
-})
+const router = new Router().registerController(new PingController())
 
 export const handler = router.getHandler()
 ```
@@ -163,13 +167,13 @@ They can also be applied by being passed to the `@Controller()` decorator.
 class PingController {}
 ```
 
-Finally, they can be applied to many controllers at once, by passing them into the `Router` constructor.
+Finally, they can be applied globally using the `Router`.
 
 ```typescript
-export const handler = new Router({
-    controllers: [new PingController()],
-    middleware: [new LogRequestMiddleware()],
-}).getHandler()
+export const handler = new Router()
+    .registerController(new PingController())
+    .registerMiddleware(new LogRequestMiddleware())
+    .getHandler()
 ```
 
 ### Request Parsing
