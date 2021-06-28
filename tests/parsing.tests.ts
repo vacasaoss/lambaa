@@ -5,7 +5,11 @@ import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
 import DecodedParam from "../src/decorators/DecodedParam"
 import Router from "../src/Router"
-import { createLambdaContext, createAPIGatewayEvent , createAPIGatewayProxyEvent} from "./testUtil"
+import {
+    createLambdaContext,
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent,
+} from "./testUtil"
 import { expect } from "chai"
 import RequestError from "../src/RequestError"
 import Controller from "../src/decorators/Controller"
@@ -134,11 +138,10 @@ class TestController {
     }
 }
 
-const router = new Router({ controllers: [new TestController()] })
+const router = new Router().registerController(new TestController())
 const context = createLambdaContext()
 
 describe("request parsing tests", () => {
-
     it("extracts path parameter from proxy request", async () => {
         const event = createAPIGatewayProxyEvent({
             path: "/from-path-proxy-test/test_path_param",
@@ -150,7 +153,7 @@ describe("request parsing tests", () => {
         expect(response.statusCode).to.equal(200)
         expect(response.body).to.equal("test_path_param")
     })
-    
+
     it("extracts path parameter from request", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_path_test",

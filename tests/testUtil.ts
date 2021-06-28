@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import {
     APIGatewayProxyEvent,
-    Context,
     ScheduledEvent,
-    SQSEvent
-} from "aws-lambda";
-import { APIGatewayEventFactoryArgs } from "./types";
+    Context,
+    SQSEvent,
+} from "aws-lambda"
+import { APIGatewayEventFactoryArgs } from "./types"
 
 export const createAPIGatewayEvent = ({
     body,
@@ -66,13 +66,15 @@ export const createAPIGatewayEvent = ({
     return eventTemplate
 }
 
-export const createAPIGatewayProxyEvent = (args: APIGatewayEventFactoryArgs): APIGatewayProxyEvent => {
+export const createAPIGatewayProxyEvent = (
+    args: APIGatewayEventFactoryArgs
+): APIGatewayProxyEvent => {
     const event = createAPIGatewayEvent(args)
     return {
         ...event,
         path: args.path as string,
         pathParameters: {},
-        resource: '{proxy+}'
+        resource: "{proxy+}",
     }
 }
 

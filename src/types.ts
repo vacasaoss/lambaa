@@ -60,3 +60,7 @@ export type Handler<
     TEvent = APIGatewayProxyEvent,
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
+
+export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
+    Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
+>

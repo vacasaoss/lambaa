@@ -4,6 +4,6 @@ export interface APIGatewayEventFactoryArgs {
     method?: string
     pathParameters?: { [name: string]: string }
     queryStringParameters?: { [name: string]: string }
-    headers?: { [name: string]: string },
+    headers?: { [name: string]: string }
     path?: string
 }

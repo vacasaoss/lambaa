@@ -66,9 +66,7 @@ Create an `index.ts` file and export the handler.
 ```typescript
 import { Router } from "lambaa"
 
-const router = new Router({
-    controllers: [new PingController()],
-})
+const router = new Router().registerController(new PingController())
 
 export const handler = router.getHandler()
 ```
@@ -169,13 +167,13 @@ They can also be applied by being passed to the `@Controller()` decorator.
 class PingController {}
 ```
 
-Finally, they can be applied to many controllers at once, by passing them into the `Router` constructor.
+Finally, they can be applied globally using the `Router`.
 
 ```typescript
-export const handler = new Router({
-    controllers: [new PingController()],
-    middleware: [new LogRequestMiddleware()],
-}).getHandler()
+export const handler = new Router()
+    .registerController(new PingController())
+    .registerMiddleware(new LogRequestMiddleware())
+    .getHandler()
 ```
 
 ### Request Parsing
