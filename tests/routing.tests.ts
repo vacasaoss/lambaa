@@ -2,10 +2,10 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     ScheduledEvent,
-    SQSEvent
+    SQSEvent,
 } from "aws-lambda"
 import { expect } from "chai"
-import sinon from "sinon"
+import sinon, { assert } from "sinon"
 import Controller from "../src/decorators/Controller"
 import Route, {
     API,
@@ -15,14 +15,16 @@ import Route, {
     POST,
     PUT,
     Schedule,
-    SQS
+    SQS,
 } from "../src/decorators/Route"
 import Router from "../src/Router"
+import RouterError from "../src/RouterError"
 import {
     createAPIGatewayEvent,
-    createAPIGatewayProxyEvent, createLambdaContext as createLambdaContext,
+    createAPIGatewayProxyEvent,
+    createLambdaContext as createLambdaContext,
     createScheduledEvent,
-    createSQSEvent
+    createSQSEvent,
 } from "./testUtil"
 
 @Controller()
@@ -264,6 +266,22 @@ describe("routing tests", () => {
         })
 
         await expect(handler(event, context)).to.eventually.be.rejected
+    })
+
+    it("throws router error if no route is found", async () => {
+        try {
+            const event = createAPIGatewayEvent({
+                resource: "/wrong",
+                method: "GET",
+            })
+
+            await handler(event, context)
+        } catch (err) {
+            expect(err).instanceOf(RouterError)
+            return
+        }
+
+        assert.fail("Expected error to be thrown")
     })
 
     it("logs debug message", async () => {
