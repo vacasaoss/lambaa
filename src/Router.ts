@@ -11,6 +11,7 @@ import {
 } from "./constants"
 import replaceEventArgs from "./replaceEventArgs"
 import RouteMap from "./RouteMap"
+import RouterError from "./RouterError"
 import {
     isApiGatewayProxyEvent,
     isApiGatewayEvent,
@@ -127,12 +128,13 @@ export default class Router {
             )
         }
 
-        throw new Error("No configured route for this event")
+        throw new RouterError({
+            message: "No configured route for this event",
+            code: "ROUTE_NOT_FOUND",
+        })
     }
 
-    private findRoutable(
-        event: unknown
-    ):
+    private findRoutable(event: unknown):
         | {
               controller: any
               method: string
