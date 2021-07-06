@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, ScheduledEvent, SQSEvent } from "aws-lambda"
+import { APIGatewayProxyEvent, ScheduledEvent, SNSEvent, SQSEvent } from "aws-lambda"
 
 export const isApiGatewayEvent = (
     event: unknown
@@ -20,6 +20,11 @@ export const isSqsEvent = (event: unknown): event is SQSEvent => {
         e?.Records?.find(({ eventSource }) => eventSource === "aws:sqs") !==
         undefined
     )
+}
+
+export const isSNSEvent = (event: unknown): event is SNSEvent => {
+    const e = event as SNSEvent;
+    return (e?.Records?.find(({EventSource})=> EventSource === "aws:sns") !== undefined)
 }
 
 export const isScheduledEvent = (event: unknown): event is ScheduledEvent => {

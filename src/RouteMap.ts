@@ -1,20 +1,19 @@
 import { APIGatewayProxyEvent } from "aws-lambda"
 
-type RouteProperties =
-    | {
-          eventType: "API_GATEWAY"
-          method: string
-          resource: string
-          basePath?: string
-      }
-    | {
-          eventType: "SQS"
-          arn: string
-      }
-    | {
-          eventType: "Schedule"
-          arn: string
-      }
+
+export type ApiGatewayRoute = {
+    eventType: "API_GATEWAY"
+    method: string
+    resource: string
+    basePath?: string
+};
+
+export type EventRoute = {
+    eventType: "SQS" | "SNS" | "Schedule"
+    arn: string
+}
+
+type RouteProperties = ApiGatewayRoute | EventRoute;
 
 /**
  * Used to store routing data on controllers.
@@ -63,7 +62,8 @@ export default class RouteMap {
             return this.map.get(`${route.resource}_${route.method}`)
         } else if (
             route.eventType === "SQS" ||
-            route.eventType === "Schedule"
+            route.eventType === "Schedule" ||
+            route.eventType === "SNS"
         ) {
             return this.map.get(route.arn)
         }
