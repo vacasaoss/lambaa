@@ -21,6 +21,8 @@ export type RequestErrorCode =
     | "MISSING_REQUEST_DATA"
     | "MISSING_HEADER"
 
+export type RouterErrorCode = "ROUTE_NOT_FOUND"
+
 /**
  * Defines a middleware invoke function.
  */
@@ -60,3 +62,7 @@ export type Handler<
     TEvent = APIGatewayProxyEvent,
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
+
+export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
+    Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
+>

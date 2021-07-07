@@ -1,26 +1,31 @@
 import {
-    APIGatewayProxyResult,
     APIGatewayProxyEvent,
+    APIGatewayProxyResult,
+    ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
-import Route, {
-    GET,
-    POST,
-    DELETE,
-    PATCH,
-    PUT,
-    SQS,
-    API,
-} from "../src/decorators/Route"
+import { expect } from "chai"
+import sinon, { assert } from "sinon"
 import Controller from "../src/decorators/Controller"
+import Route, {
+    API,
+    DELETE,
+    GET,
+    PATCH,
+    POST,
+    PUT,
+    Schedule,
+    SQS,
+} from "../src/decorators/Route"
 import Router from "../src/Router"
+import RouterError from "../src/RouterError"
 import {
-    createLambdaContext as createLambdaContext,
     createAPIGatewayEvent,
+    createAPIGatewayProxyEvent,
+    createLambdaContext as createLambdaContext,
+    createScheduledEvent,
     createSQSEvent,
 } from "./testUtil"
-import { expect } from "chai"
-import sinon from "sinon"
 
 @Controller()
 class TestController {
@@ -93,6 +98,21 @@ class TestController {
         )
         expect(record?.eventSourceARN).to.equal("arn:234")
     }
+
+    @Schedule("arn:123/schedule")
+    public async testScheduled1(scheduledEvent: ScheduledEvent): Promise<void> {
+        expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
+            "scheduled event"
+        )
+        expect(scheduledEvent?.resources).to.include("arn:123/schedule")
+    }
+    @Schedule("arn:234/schedule")
+    public async testScheduled2(scheduledEvent: ScheduledEvent): Promise<void> {
+        expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
+            "scheduled event"
+        )
+        expect(scheduledEvent?.resources).to.include("arn:234/schedule")
+    }
 }
 
 @Controller("/test")
@@ -133,15 +153,29 @@ class TestController3 {
             body: "test10",
         }
     }
+
+    @API("PUT", "10")
+    public async test10PUT(): Promise<APIGatewayProxyResult> {
+        return {
+            statusCode: 200,
+            body: "test10PUT",
+        }
+    }
+
+    @API("POST", "10")
+    public async test10POST(): Promise<APIGatewayProxyResult> {
+        return {
+            statusCode: 200,
+            body: "test10POST",
+        }
+    }
 }
 
-const router = new Router({
-    controllers: [
-        new TestController(),
-        new TestController2(),
-        new TestController3(),
-    ],
-})
+const router = new Router().registerControllers([
+    new TestController(),
+    new TestController2(),
+    new TestController3(),
+])
 
 const handler = router.getHandler<APIGatewayProxyEvent, APIGatewayProxyResult>()
 const context = createLambdaContext()
@@ -234,6 +268,22 @@ describe("routing tests", () => {
         await expect(handler(event, context)).to.eventually.be.rejected
     })
 
+    it("throws router error if no route is found", async () => {
+        try {
+            const event = createAPIGatewayEvent({
+                resource: "/wrong",
+                method: "GET",
+            })
+
+            await handler(event, context)
+        } catch (err) {
+            expect(err).instanceOf(RouterError)
+            return
+        }
+
+        assert.fail("Expected error to be thrown")
+    })
+
     it("logs debug message", async () => {
         const consoleDebugStub = sinon.stub(console, "debug")
         process.env.DEBUG = "true"
@@ -285,7 +335,7 @@ describe("routing tests", () => {
             expect(response.body).to.equal("test8")
         })
 
-        it("rotues when base path route has leading /", async () => {
+        it("routes when base path route has leading /", async () => {
             const event = createAPIGatewayEvent({
                 resource: "/test/9",
                 method: "GET",
@@ -308,9 +358,45 @@ describe("routing tests", () => {
             expect(response.statusCode).to.equal(200)
             expect(response.body).to.equal("test10")
         })
+
+        it("routes when basePath is included on proxy event", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/test/10",
+                method: "GET",
+            })
+
+            const response = await handler(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test10")
+        })
+
+        it("routes PUT method when basePath is included on proxy event", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/test/10",
+                method: "PUT",
+            })
+
+            const response = await handler(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test10PUT")
+        })
+
+        it("routes POST method when basePath is included on proxy event", async () => {
+            const event = createAPIGatewayProxyEvent({
+                path: "/test/10",
+                method: "POST",
+            })
+
+            const response = await handler(event, context)
+
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test10POST")
+        })
     })
 
-    describe("it routes SQS event", () => {
+    describe("it routes SQS events", () => {
         it("routes event", async () => {
             const event = createSQSEvent("arn:123")
             const response = await router.route(event, context)
@@ -324,6 +410,28 @@ describe("routing tests", () => {
 
         it("routes event with multiple records", async () => {
             const event = createSQSEvent("arn:abc", "arn:234", "arn:123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+    })
+
+    describe("it routes Scheduled events", () => {
+        it("routes event", async () => {
+            const event = createScheduledEvent("arn:123/schedule")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createScheduledEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+        it("routes event with multiple resources", async () => {
+            const event = createScheduledEvent(
+                "arn:abc",
+                "arn:234/schedule",
+                "arn:123/schedule"
+            )
             const response = await router.route(event, context)
             expect(response).to.be.undefined
         })

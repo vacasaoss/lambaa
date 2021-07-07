@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { APIGatewayProxyEvent, Context, SQSEvent } from "aws-lambda"
+import {
+    APIGatewayProxyEvent,
+    ScheduledEvent,
+    Context,
+    SQSEvent,
+} from "aws-lambda"
+import { APIGatewayEventFactoryArgs } from "./types"
 
 export const createAPIGatewayEvent = ({
     body,
@@ -8,14 +14,7 @@ export const createAPIGatewayEvent = ({
     pathParameters,
     queryStringParameters,
     headers,
-}: {
-    body?: string
-    resource?: string
-    method?: string
-    pathParameters?: { [name: string]: string }
-    queryStringParameters?: { [name: string]: string }
-    headers?: { [name: string]: string }
-} = {}): APIGatewayProxyEvent => {
+}: APIGatewayEventFactoryArgs = {}): APIGatewayProxyEvent => {
     const eventTemplate: APIGatewayProxyEvent = {
         resource: resource ?? "/test",
         path: "/v1",
@@ -67,6 +66,18 @@ export const createAPIGatewayEvent = ({
     return eventTemplate
 }
 
+export const createAPIGatewayProxyEvent = (
+    args: APIGatewayEventFactoryArgs
+): APIGatewayProxyEvent => {
+    const event = createAPIGatewayEvent(args)
+    return {
+        ...event,
+        path: args.path as string,
+        pathParameters: {},
+        resource: "{proxy+}",
+    }
+}
+
 export const createSQSEvent = (...arns: string[]): SQSEvent => ({
     Records: arns.map((arn) => ({
         eventSourceARN: arn,
@@ -85,6 +96,18 @@ export const createSQSEvent = (...arns: string[]): SQSEvent => ({
         eventSource: "aws:sqs",
         awsRegion: "",
     })),
+})
+
+export const createScheduledEvent = (...arns: string[]): ScheduledEvent => ({
+    version: "0",
+    account: "123456789012",
+    region: "us-east-2",
+    detail: {},
+    "detail-type": "Scheduled Event",
+    source: "aws.events",
+    time: "2019-03-01T01:23:45Z",
+    id: "cdc73f9d-aea9-11e3-9d5a-835b769c0d9c",
+    resources: arns,
 })
 
 export const createLambdaContext = (): Context => ({
