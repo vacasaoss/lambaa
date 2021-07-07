@@ -16,7 +16,7 @@ import {
     isApiGatewayProxyEvent,
     isApiGatewayEvent,
     isSqsEvent,
-    isScheduledEvent,
+    isScheduledEvent, isSNSEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -203,6 +203,23 @@ export default class Router {
                         )
 
                         return { controller, method, options }
+                    }
+                }
+            }
+
+            if(isSNSEvent(event)) {
+                for(const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "SNS",
+                        arn: record.Sns.TopicArn,
+                    });
+
+                    if(method){
+                        this.logDebugMessage(
+                            `Passing SNS event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return {controller, method, options};
                     }
                 }
             }

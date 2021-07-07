@@ -1,5 +1,5 @@
 import { ROUTE_HANDLER_METADATA_KEY } from "../constants"
-import RouteMap from "../RouteMap"
+import RouteMap, { EventRoute } from "../RouteMap"
 import { HTTPMethod } from "../types"
 
 /**
@@ -31,11 +31,7 @@ export default function Route(
     }
 }
 
-/**
- * Define an SQS event handler.
- * @param arn The ARN of the queue.
- */
-export function SQS(arn: string): MethodDecorator {
+function getEventHandler(route: EventRoute): MethodDecorator {
     return (
         target: any,
         propertyKey: string | symbol,
@@ -45,7 +41,7 @@ export function SQS(arn: string): MethodDecorator {
             Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
             new RouteMap()
 
-        routeMap.addRoute({ eventType: "SQS", arn }, propertyKey)
+        routeMap.addRoute(route, propertyKey)
 
         Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
 
@@ -54,26 +50,28 @@ export function SQS(arn: string): MethodDecorator {
 }
 
 /**
+ * Define an SQS event handler.
+ * @param arn The ARN of the queue.
+ */
+export function SQS(arn: string): MethodDecorator {
+return getEventHandler({ eventType: "SQS", arn });
+}
+
+/**
+ * Define an SNS event handler.
+ * @param arn The ARN of the queue.
+ */
+export function SNS(arn: string): MethodDecorator {
+    return getEventHandler({ eventType: "SNS", arn });
+}
+
+/**
  * Define an Scheduled event handler.
  * @param arn The ARN of the event rule.
  * @see https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
  */
 export function Schedule(arn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute({ eventType: "Schedule", arn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+  return getEventHandler({eventType: "Schedule", arn});
 }
 
 /**
