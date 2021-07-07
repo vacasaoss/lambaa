@@ -21,6 +21,8 @@ export type RequestErrorCode =
     | "MISSING_REQUEST_DATA"
     | "MISSING_HEADER"
 
+export type RouterErrorCode = "ROUTE_NOT_FOUND"
+
 /**
  * Defines a middleware invoke function.
  */
