@@ -10,5 +10,6 @@ export { default as FromQuery } from "./decorators/FromQuery"
 export { default as Router } from "./Router"
 export { default as RequestError } from "./RequestError"
 export { default as RouterError } from "./RouterError"
+export * as constants from "./constants";
 export * from "./decorators/Route"
 export * from "./types"
