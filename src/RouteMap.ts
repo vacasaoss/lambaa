@@ -98,8 +98,8 @@ export default class RouteMap {
      */
     private isPathMatch(route: string, event: APIGatewayProxyEvent): boolean {
         const eventPathParts = event.path.split("/")
-        const routeMethod = route.split("_")[1]
-        const routePathParts = route.split("_")[0].split("/")
+        const routeMethod = route.split("_").slice(-1).pop()
+        const routePathParts = route.split(`_${routeMethod}`)[0].split("/")
 
         // Fail fast if they're not the same length
         if (
