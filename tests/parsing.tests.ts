@@ -13,7 +13,8 @@ import RequestError from "../src/RequestError"
 import Router from "../src/Router"
 import {
     createAPIGatewayEvent,
-    createAPIGatewayProxyEvent, createLambdaContext
+    createAPIGatewayProxyEvent,
+    createLambdaContext,
 } from "./testUtil"
 
 const CustomParamForTest = DecodedParam<{
@@ -215,8 +216,10 @@ describe("request parsing tests", () => {
         const event = createAPIGatewayEvent({
             resource: "from_body_test",
             method: "GET",
-            body: Buffer.from(JSON.stringify({ test: true })).toString('base64'),
-            isBase64Encoded: true
+            body: Buffer.from(JSON.stringify({ test: true })).toString(
+                "base64"
+            ),
+            isBase64Encoded: true,
         })
 
         const response = await router.route(event, context)

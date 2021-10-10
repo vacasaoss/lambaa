@@ -1,7 +1,11 @@
 import { APIGatewayProxyEvent } from "aws-lambda"
 import "reflect-metadata"
 import {
-    FROM_BODY_METADATA_KEY, FROM_HEADER_METADATA_KEY, FROM_PATH_METADATA_KEY, FROM_QUERY_METADATA_KEY, ROUTE_ARGS_METADATA_KEY
+    FROM_BODY_METADATA_KEY,
+    FROM_HEADER_METADATA_KEY,
+    FROM_PATH_METADATA_KEY,
+    FROM_QUERY_METADATA_KEY,
+    ROUTE_ARGS_METADATA_KEY,
 } from "./constants"
 import RequestError from "./RequestError"
 import { isApiGatewayEvent } from "./typeGuards"
@@ -34,14 +38,13 @@ const replaceFromBodyArgs = (
         }
 
         // Replace the argument at the index with the request body or undefined if not required
-        args[index] = !event.body 
-            ? undefined 
+        args[index] = !event.body
+            ? undefined
             : JSON.parse(
-                event.isBase64Encoded 
-                    ? Buffer.from(event.body, 'base64').toString() 
-                    : event.body
-            )
-
+                  event.isBase64Encoded
+                      ? Buffer.from(event.body, "base64").toString()
+                      : event.body
+              )
     })
 }
 
