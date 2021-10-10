@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import {
-    APIGatewayProxyEvent,
-    ScheduledEvent,
-    Context,
-    SQSEvent,
+    APIGatewayProxyEvent, Context, ScheduledEvent, SQSEvent
 } from "aws-lambda"
 import { APIGatewayEventFactoryArgs } from "./types"
 
@@ -14,6 +11,7 @@ export const createAPIGatewayEvent = ({
     pathParameters,
     queryStringParameters,
     headers,
+    isBase64Encoded
 }: APIGatewayEventFactoryArgs = {}): APIGatewayProxyEvent => {
     const eventTemplate: APIGatewayProxyEvent = {
         resource: resource ?? "/test",
@@ -60,7 +58,7 @@ export const createAPIGatewayEvent = ({
             protocol: "",
         },
         body: body ?? null,
-        isBase64Encoded: false,
+        isBase64Encoded: isBase64Encoded ?? false,
     }
 
     return eventTemplate

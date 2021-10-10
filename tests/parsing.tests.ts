@@ -1,21 +1,20 @@
-import Route from "../src/decorators/Route"
-import FromPath from "../src/decorators/FromPath"
-import FromQuery from "../src/decorators/FromQuery"
-import FromBody from "../src/decorators/FromBody"
-import FromHeader from "../src/decorators/FromHeader"
-import DecodedParam from "../src/decorators/DecodedParam"
-import Router from "../src/Router"
-import {
-    createLambdaContext,
-    createAPIGatewayEvent,
-    createAPIGatewayProxyEvent,
-} from "./testUtil"
-import { expect } from "chai"
-import RequestError from "../src/RequestError"
-import Controller from "../src/decorators/Controller"
-import Use from "../src/decorators/Use"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
 import { APIGatewayProxyEventPathParameters } from "aws-lambda/trigger/api-gateway-proxy"
+import { expect } from "chai"
+import Controller from "../src/decorators/Controller"
+import DecodedParam from "../src/decorators/DecodedParam"
+import FromBody from "../src/decorators/FromBody"
+import FromHeader from "../src/decorators/FromHeader"
+import FromPath from "../src/decorators/FromPath"
+import FromQuery from "../src/decorators/FromQuery"
+import Route from "../src/decorators/Route"
+import Use from "../src/decorators/Use"
+import RequestError from "../src/RequestError"
+import Router from "../src/Router"
+import {
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent, createLambdaContext
+} from "./testUtil"
 
 const CustomParamForTest = DecodedParam<{
     httpMethod: string
@@ -204,6 +203,20 @@ describe("request parsing tests", () => {
             resource: "from_body_test",
             method: "GET",
             body: JSON.stringify({ test: true }),
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        expect(JSON.parse(response.body)).to.eql({ test: true })
+    })
+
+    it("extracts base64 encoded JSON body from request", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_body_test",
+            method: "GET",
+            body: Buffer.from(JSON.stringify({ test: true })).toString('base64'),
+            isBase64Encoded: true
         })
 
         const response = await router.route(event, context)
