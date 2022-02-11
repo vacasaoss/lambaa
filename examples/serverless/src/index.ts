@@ -4,12 +4,12 @@ import UsersController from "@controllers/UsersController"
 import QueueController from "@controllers/QueueController"
 import errorLoggerMiddleware from "@middleware/errorLoggerMiddleware"
 
-const router = new Router()
-    .registerControllers([
+const router = new Router().registerControllers([
         new PingController(),
         new UsersController(),
         new QueueController(),
-    ])
-    .registerMiddleware(errorLoggerMiddleware)
+]).registerMiddleware(
+    errorLoggerMiddleware
+);
 
 export const handler = router.getHandler()
