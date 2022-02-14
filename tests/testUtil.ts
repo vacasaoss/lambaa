@@ -54,6 +54,7 @@ export const createAPIGatewayEvent = ({
                 accessKey: null,
                 cognitoAuthenticationProvider: null,
                 user: null,
+                clientCert: null
             },
             domainName: "test",
             apiId: "test",

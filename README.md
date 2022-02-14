@@ -87,6 +87,21 @@ functions:
 
 > See the Serverless [example project](examples/serverless) for an example of how to use with `serverless.ts`.
 
+##### API Gateway Generic Proxy Resources
+
+Generic proxy resources are also supported using the `{proxy+}` path variable.
+
+This can simplify the handler setup by allowing you to configure a single event to handle many different HTTP requests.
+
+```yml
+events:
+    - http:
+          path: /{proxy+}
+          method: ANY
+```
+
+> Note: if you choose to use a proxy resource, API Gateway will forward all matching HTTP requests to your Lambda function. This will result in an error if the route is not handled by your application. It is recommended to handle this error using a middleware. Check for the `RouterError` type.
+
 ### Middleware
 
 Middleware can be used to modify the request/response pipeline.
