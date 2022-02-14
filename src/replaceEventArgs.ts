@@ -38,7 +38,13 @@ const replaceFromBodyArgs = (
         }
 
         // Replace the argument at the index with the request body or undefined if not required
-        args[index] = !event.body ? undefined : JSON.parse(event.body)
+        args[index] = !event.body
+            ? undefined
+            : JSON.parse(
+                  event.isBase64Encoded
+                      ? Buffer.from(event.body, "base64").toString()
+                      : event.body
+              )
     })
 }
 

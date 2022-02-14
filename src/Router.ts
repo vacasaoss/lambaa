@@ -1,16 +1,44 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context, ScheduledEvent, SQSEvent } from "aws-lambda" // prettier-ignore
-import { CONTROLLER_METADATA_KEY, ROUTE_HANDLER_METADATA_KEY } from "./constants" // prettier-ignore
+import {
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult,
+    Context,
+    ScheduledEvent,
+    SQSEvent,
+} from "aws-lambda"
+import {
+    CONTROLLER_METADATA_KEY,
+    ROUTE_HANDLER_METADATA_KEY,
+} from "./constants"
 import replaceEventArgs from "./replaceEventArgs"
 import RouteMap from "./RouteMap"
-import { isApiGatewayEvent, isApiGatewayProxyEvent, isScheduledEvent, isSqsEvent } from "./typeGuards"
-import { ControllerOptions, Handler, Middleware, MiddlewareFunction, RouterRegistration } from "./types" // prettier-ignore
+import RouterError from "./RouterError"
+import {
+    isApiGatewayProxyEvent,
+    isApiGatewayEvent,
+    isSqsEvent,
+    isScheduledEvent,
+} from "./typeGuards"
+import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
-class Router {
-    private registrations: RouterRegistration[]
+export default class Router {
+    private middleware: MiddlewarePipeline<any, any> = []
+    private controllers: any[] = []
 
-    constructor(...registrations: RouterRegistration[]) {
-        this.registrations = registrations
+    public registerMiddleware(
+        ...middleware: MiddlewarePipeline<any, any>
+    ): Router {
+        this.middleware.push(...middleware)
+        return this
+    }
+
+    public registerController(controller: any): Router {
+        this.controllers.push(controller)
+        return this
+    }
+
+    public registerControllers(controllers: any[]): Router {
+        this.controllers.push(...controllers)
+        return this
     }
 
     /**
@@ -35,158 +63,172 @@ class Router {
     ): Promise<APIGatewayProxyResult>
 
     /**
+     * Route a scheduled event to a controller.
+     * @param event The scheduled event.
+     * @param context The Lambda context.
+     */
+    public route(event: ScheduledEvent, context: Context): Promise<void>
+
+    /**
      * Route an incoming SQS event to a controller.
      * @param event The SQS event.
      * @param context The Lambda context.
      */
     public route(event: SQSEvent, context: Context): Promise<void>
 
-    /**
-     * Route an incoming Scheduled event to a controller.
-     * @param event The Scheduled event.
-     * @param context The Lambda context.
-     */
-    public route(event: ScheduledEvent, context: Context): Promise<void>
-
-    public async route<TEvent, TResult>(
-        event: TEvent,
-        context: Context
-    ): Promise<TResult> {
-        for (const { controllers, middleware } of this.registrations) {
-            for (const controller of controllers) {
-                const controllerOptions:
-                    | ControllerOptions
-                    | undefined = Reflect.getMetadata(
-                    CONTROLLER_METADATA_KEY,
-                    controller
-                )
-
-                if (!controllerOptions) {
-                    continue
-                }
-
-                const routeMap: RouteMap | undefined = Reflect.getMetadata(
-                    ROUTE_HANDLER_METADATA_KEY,
-                    controller
-                )
-
-                let method: string | undefined
-                let debugMessage: string | undefined
-
-                if (isApiGatewayProxyEvent(event)){
-                    method = routeMap?.getRouteOverridePathParams({
-                        event,
-                        basePath: controllerOptions.basePath
-                    });
-                    if (method) {
-                        debugMessage = `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
-                    }
-                } else if (isApiGatewayEvent(event)) {
-                    
-                    method = routeMap?.getRoute({
-                        eventType: "API_GATEWAY",
-                        method: event.httpMethod,
-                        resource: event.resource,
-                        basePath: controllerOptions.basePath
-                    })
-
-                    if (method) {
-                        debugMessage = `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
-                    }
-                } else if (isSqsEvent(event) && event.Records.length > 0) {
-                    for (const record of event.Records) {
-                        method = routeMap?.getRoute({
-                            eventType: "SQS",
-                            arn: record.eventSourceARN,
-                        })
-
-                        if (method) {
-                            debugMessage = `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
-                            break
-                        }
-                    }
-                } else if (isScheduledEvent(event)) {
-                    for (const resource of event.resources) {
-                        method = routeMap?.getRoute({
-                            eventType: "Schedule",
-                            arn: resource,
-                        })
-
-                        if (method) {
-                            debugMessage = `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
-                            break
-                        }
-                    }
-                }
-
-                if (!method) {
-                    continue
-                }
-
-                if (
-                    debugMessage &&
-                    process.env.DEBUG?.toLowerCase() === "true"
-                ) {
-                    console.debug(debugMessage)
-                }
-
-                const pipeline = [
-                    ...(middleware ?? []),
-                    ...(controllerOptions.middleware ?? []),
-                ].reverse() // Reverse to ensure middlewares are executed in the correct order
-
-                return this.invoke(
-                    event,
-                    context,
-                    (e, c) =>
-                        this.executeRouteHandler(controller, method!, e, c),
-                    pipeline
-                )
-            }
-        }
-
-        throw new Error("No configured route for this event")
+    public async route(event: unknown, context: Context): Promise<unknown> {
+        const pipeline = this.middleware.reverse()
+        return this.invoke(event, context, pipeline, (e: unknown, c: Context) =>
+            this.passToController(e, c)
+        )
     }
 
-    /**
-     * Execute the middleware pipeline.
-     */
     private invoke(
-        event: any,
+        event: unknown,
         context: Context,
-        handler: Handler<any, any>,
-        pipeline: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
-    ): Promise<any> {
-        const middleware = pipeline.pop()
+        pipeline: MiddlewarePipeline,
+        handler: Handler<unknown, unknown>
+    ): Promise<unknown> {
+        const pipelineCopy = [...pipeline]
+        const middleware = pipelineCopy.pop()
 
         if (!middleware) {
             return handler(event, context)
         }
 
         const next = (e: any, c: Context) =>
-            this.invoke(e, c, handler, pipeline)
+            this.invoke(e, c, pipelineCopy, handler)
 
         return "invoke" in middleware
             ? middleware.invoke(event, context, next)
             : middleware(event, context, next)
     }
 
-    /**
-     * Extract request parameters and pass to the route handler.
-     */
-    private executeRouteHandler(
-        controller: any,
-        method: string,
-        event: any,
+    private passToController(
+        event: unknown,
         context: Context
-    ): Promise<any> {
-        const args = replaceEventArgs(event, controller, method, [
-            event,
-            context,
-        ])
+    ): Promise<unknown> {
+        const routable = this.findRoutable(event)
 
-        return controller[method](...[...args, event, context])
+        if (routable) {
+            const { controller, method, options } = routable
+            const args = replaceEventArgs(event, controller, method, [
+                event,
+                context,
+            ])
+
+            const pipeline = [...(options.middleware ?? [])].reverse()
+
+            return this.invoke(
+                event,
+                context,
+                pipeline,
+                (e: unknown, c: Context) =>
+                    controller[method](...[...args, e, c])
+            )
+        }
+
+        throw new RouterError({
+            message: "No configured route for this event",
+            code: "ROUTE_NOT_FOUND",
+        })
+    }
+
+    private findRoutable(event: unknown):
+        | {
+              controller: any
+              method: string
+              options: ControllerOptions
+          }
+        | undefined {
+        for (const controller of this.controllers) {
+            const options: ControllerOptions | undefined = Reflect.getMetadata(
+                CONTROLLER_METADATA_KEY,
+                controller
+            )
+
+            if (!options) {
+                continue
+            }
+
+            const routeMap: RouteMap | undefined = Reflect.getMetadata(
+                ROUTE_HANDLER_METADATA_KEY,
+                controller
+            )
+
+            let method: string | undefined
+
+            if (isApiGatewayProxyEvent(event)) {
+                method = routeMap?.getRouteOverridePathParams({
+                    event,
+                    basePath: options.basePath,
+                })
+
+                if (method) {
+                    this.logDebugMessage(
+                        `Passing ${event.httpMethod} ${event.path} request to ${controller?.constructor?.name}.${method}(...)`
+                    )
+
+                    return { controller, method, options }
+                }
+            }
+
+            if (isApiGatewayEvent(event)) {
+                method = routeMap?.getRoute({
+                    eventType: "API_GATEWAY",
+                    method: event.httpMethod,
+                    resource: event.resource,
+                    basePath: options.basePath,
+                })
+
+                if (method) {
+                    this.logDebugMessage(
+                        `Passing ${event.httpMethod} ${event.resource} request to ${controller?.constructor?.name}.${method}(...)`
+                    )
+
+                    return { controller, method, options }
+                }
+            }
+
+            if (isSqsEvent(event) && event.Records.length > 0) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "SQS",
+                        arn: record.eventSourceARN,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing SQS event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isScheduledEvent(event)) {
+                for (const resource of event.resources) {
+                    method = routeMap?.getRoute({
+                        eventType: "Schedule",
+                        arn: resource,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+        }
+    }
+
+    private logDebugMessage(debugMessage: string) {
+        if (debugMessage && process.env.DEBUG?.toLowerCase() === "true") {
+            console.debug(debugMessage)
+        }
     }
 }
-
-export default Router

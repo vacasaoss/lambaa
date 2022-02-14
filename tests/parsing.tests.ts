@@ -171,7 +171,7 @@ class TestController {
     }
 }
 
-const router = new Router({ controllers: [new TestController()] })
+const router = new Router().registerController(new TestController())
 const context = createLambdaContext()
 
 describe("request parsing tests", () => {
@@ -261,6 +261,22 @@ describe("request parsing tests", () => {
             resource: "from_body_test",
             method: "GET",
             body: JSON.stringify({ test: true }),
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        expect(JSON.parse(response.body)).to.eql({ test: true })
+    })
+
+    it("extracts base64 encoded JSON body from request", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_body_test",
+            method: "GET",
+            body: Buffer.from(JSON.stringify({ test: true })).toString(
+                "base64"
+            ),
+            isBase64Encoded: true,
         })
 
         const response = await router.route(event, context)
