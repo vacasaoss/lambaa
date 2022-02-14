@@ -15,6 +15,15 @@ const handler = {
                 path: "users",
             },
         },
+
+        // Optional: proxy resource's are also supported
+        {
+            http: {
+                method: "/{proxy+}",
+                path: "ANY",
+            },
+        },
+
         {
             sqs: {
                 arn: {
