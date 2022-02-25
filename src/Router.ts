@@ -2,6 +2,7 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     Context,
+    DynamoDBStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -76,6 +77,13 @@ export default class Router {
      * @param context The Lambda context.
      */
     public route(event: SQSEvent, context: Context): Promise<void>
+
+    /**
+     * Route an incoming Dynamo DB stream event to a controller.
+     * @param event The Dynamo DB stream event.
+     * @param context The Lambda context.
+     */
+    public route(event: DynamoDBStreamEvent, context: Context): Promise<void>
 
     public async route(event: unknown, context: Context): Promise<unknown> {
         const pipeline = this.middleware.reverse()

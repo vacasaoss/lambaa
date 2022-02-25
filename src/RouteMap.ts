@@ -41,7 +41,8 @@ export default class RouteMap {
             )
         } else if (
             route.eventType === "SQS" ||
-            route.eventType === "Schedule"
+            route.eventType === "Schedule" ||
+            route.eventType === "Dynamo"
         ) {
             this.map.set(route.arn, propertyKey.toString())
         }
@@ -67,7 +68,8 @@ export default class RouteMap {
             return this.map.get(`${route.resource}_${route.method}`)
         } else if (
             route.eventType === "SQS" ||
-            route.eventType === "Schedule"
+            route.eventType === "Schedule" ||
+            route.eventType === "Dynamo"
         ) {
             return this.map.get(route.arn)
         }

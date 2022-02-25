@@ -1,6 +1,7 @@
 import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
+    DynamoDBStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -10,6 +11,7 @@ import Controller from "../src/decorators/Controller"
 import Route, {
     API,
     DELETE,
+    DynamoDB,
     GET,
     PATCH,
     POST,
@@ -22,6 +24,7 @@ import RouterError from "../src/RouterError"
 import {
     createAPIGatewayEvent,
     createAPIGatewayProxyEvent,
+    createDynamoDbStreamEvent,
     createLambdaContext as createLambdaContext,
     createScheduledEvent,
     createSQSEvent,
@@ -106,12 +109,23 @@ class TestController {
         )
         expect(scheduledEvent?.resources).to.include("arn:123/schedule")
     }
+
     @Schedule("arn:234/schedule")
     public async testScheduled2(scheduledEvent: ScheduledEvent): Promise<void> {
         expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
             "scheduled event"
         )
         expect(scheduledEvent?.resources).to.include("arn:234/schedule")
+    }
+
+    @DynamoDB("arn:aws:dynamodb:us-east-1:123:table/table-name")
+    public async testDynamoDbStream1(
+        dynamoDbStreamEvent: DynamoDBStreamEvent
+    ): Promise<void> {
+        expect(dynamoDbStreamEvent.Records.length).to.be.greaterThan(0)
+        expect(dynamoDbStreamEvent.Records[0].eventSourceARN).to.equal(
+            "arn:aws:dynamodb:us-east-1:123:table/table-name/stream/2022-02-24T22:37:34.890"
+        )
     }
 }
 
@@ -432,6 +446,17 @@ describe("routing tests", () => {
                 "arn:234/schedule",
                 "arn:123/schedule"
             )
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+    })
+
+    describe("routes Dynamo DB stream events", () => {
+        it("routes event", async () => {
+            const event = createDynamoDbStreamEvent(
+                "arn:aws:dynamodb:us-east-1:123:table/table-name"
+            )
+
             const response = await router.route(event, context)
             expect(response).to.be.undefined
         })
