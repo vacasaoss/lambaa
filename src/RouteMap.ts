@@ -15,6 +15,10 @@ type RouteProperties =
           eventType: "Schedule"
           arn: string
       }
+    | {
+          eventType: "Dynamo"
+          arn: string
+      }
 
 /**
  * Used to store routing data on controllers.

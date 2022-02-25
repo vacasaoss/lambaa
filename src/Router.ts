@@ -17,6 +17,7 @@ import {
     isApiGatewayEvent,
     isSqsEvent,
     isScheduledEvent,
+    isDynamoDbStreamEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -217,6 +218,32 @@ export default class Router {
                     if (method) {
                         this.logDebugMessage(
                             `Passing Scheduled event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isDynamoDbStreamEvent(event) && event.Records.length > 0) {
+                for (const record of event.Records) {
+                    if (!record.eventSourceARN) {
+                        continue
+                    }
+
+                    const tableArn = record.eventSourceARN.substring(
+                        0,
+                        record.eventSourceARN.indexOf("/stream/")
+                    )
+
+                    method = routeMap?.getRoute({
+                        eventType: "Dynamo",
+                        arn: tableArn,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Dynamo DB stream event to ${controller?.constructor?.name}.${method}(...)`
                         )
 
                         return { controller, method, options }

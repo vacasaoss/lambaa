@@ -77,6 +77,28 @@ export function Schedule(arn: string): MethodDecorator {
 }
 
 /**
+ * Define a Dynamo DB stream event handler.
+ * @param tableArn The ARN of the table (not the event stream).
+ */
+export function DynamoDB(tableArn: string): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute({ eventType: "Dynamo", arn: tableArn }, propertyKey)
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
+
+/**
  * Define an API Gateway event handler.
  */
 export const API = (method: HTTPMethod, resource: string) =>
