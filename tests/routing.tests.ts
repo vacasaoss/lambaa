@@ -440,6 +440,7 @@ describe("routing tests", () => {
             const event = createScheduledEvent("arn:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
+
         it("routes event with multiple resources", async () => {
             const event = createScheduledEvent(
                 "arn:abc",
@@ -459,6 +460,11 @@ describe("routing tests", () => {
 
             const response = await router.route(event, context)
             expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createDynamoDbStreamEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })
 })
