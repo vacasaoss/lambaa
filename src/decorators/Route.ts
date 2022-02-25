@@ -78,7 +78,7 @@ export function Schedule(arn: string): MethodDecorator {
 
 /**
  * Define a Dynamo DB stream event handler.
- * @param tableArn The ARN of the table (not the event stream).
+ * @param tableArn The ARN of the table (not the event stream ARN).
  */
 export function DynamoDB(tableArn: string): MethodDecorator {
     return (
