@@ -24,36 +24,37 @@ This library has the concept of controllers, similar to other web frameworks.
 
 To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](src/decorators/Route.ts), e.g. `@GET("/ping")`.
 
-> Currently only API Gateway, Scheduled and SQS events are supported.
+> Currently only API Gateway, Scheduled, SQS and Dynamo DB stream events are supported.
 
 ```typescript
-import { Controller, GET, Schedule, SQS } from "lambaa"
+import { Controller, GET, Schedule, SQS, DynamoDB } from "lambaa"
 import {
     APIGatewayProxyEvent,
-    SQSEvent,
     APIGatewayProxyResult,
+    DynamoDBStreamEvent,
+    ScheduledEvent,
+    SQSEvent,
 } from "aws-lambda"
 
 @Controller()
-class TestController {
+class ExampleController {
     @GET("/ping")
     public ping(event: APIGatewayProxyEvent): APIGatewayProxyResult {
-        // ...
-        return {
-            statusCode: 200,
-            body: "pong",
-        }
+        return { statusCode: 200, body: "pong" }
     }
 
-    @Schedule("arn:456")
+    @Schedule("<event rule ARN>")
     public receive(event: ScheduledEvent): void {
-        // ...
         return
     }
 
-    @SQS("arn:123")
+    @SQS("<queue ARN>")
     public receive(event: SQSEvent): void {
-        // ...
+        return
+    }
+
+    @DynamoDB("<table ARN>")
+    public receive(event: DynamoDBStreamEvent): void {
         return
     }
 }
