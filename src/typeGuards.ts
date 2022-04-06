@@ -1,4 +1,9 @@
-import { APIGatewayProxyEvent, ScheduledEvent, SQSEvent } from "aws-lambda"
+import {
+    APIGatewayProxyEvent,
+    DynamoDBStreamEvent,
+    ScheduledEvent,
+    SQSEvent,
+} from "aws-lambda"
 
 export const isApiGatewayEvent = (
     event: unknown
@@ -26,4 +31,15 @@ export const isScheduledEvent = (event: unknown): event is ScheduledEvent => {
     const e = event as ScheduledEvent
     // https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
     return e?.["detail-type"]?.toLowerCase() === "scheduled event"
+}
+
+export const isDynamoDbStreamEvent = (
+    event: unknown
+): event is DynamoDBStreamEvent => {
+    const e = event as DynamoDBStreamEvent
+    return (
+        e?.Records?.find(
+            ({ eventSource }) => eventSource === "aws:dynamodb"
+        ) !== undefined
+    )
 }
