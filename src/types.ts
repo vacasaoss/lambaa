@@ -4,6 +4,11 @@ import {
     APIGatewayProxyResult,
 } from "aws-lambda"
 
+export interface MiddlewareContext {
+    controller?: any
+    method?: string
+}
+
 export interface RequestOptions {
     required: boolean
 }
@@ -32,7 +37,8 @@ export type MiddlewareFunction<
 > = (
     event: TEvent,
     context: Context,
-    next: Handler<TEvent, TResult>
+    next: Handler<TEvent, TResult>,
+    middlewareContext?: MiddlewareContext
 ) => Promise<TResult>
 
 /**
