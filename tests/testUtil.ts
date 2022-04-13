@@ -2,6 +2,7 @@
 import {
     APIGatewayProxyEvent,
     Context,
+    DynamoDBStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -54,7 +55,7 @@ export const createAPIGatewayEvent = ({
                 accessKey: null,
                 cognitoAuthenticationProvider: null,
                 user: null,
-                clientCert: null
+                clientCert: null,
             },
             domainName: "test",
             apiId: "test",
@@ -110,6 +111,27 @@ export const createScheduledEvent = (...arns: string[]): ScheduledEvent => ({
     time: "2019-03-01T01:23:45Z",
     id: "cdc73f9d-aea9-11e3-9d5a-835b769c0d9c",
     resources: arns,
+})
+
+export const createDynamoDbStreamEvent = (
+    ...tableArns: string[]
+): DynamoDBStreamEvent => ({
+    Records: tableArns.map((tableArn) => ({
+        eventID: "a61438b745710c58893214a3ce02ced7",
+        eventName: "INSERT",
+        eventVersion: "1.1",
+        eventSource: "aws:dynamodb",
+        awsRegion: "us-west-2",
+        dynamodb: {
+            ApproximateCreationDateTime: 1645747230,
+            Keys: { hk: { S: "test" } },
+            NewImage: { test: { S: "test" } },
+            SequenceNumber: "516800000000013117674582",
+            SizeBytes: 559,
+            StreamViewType: "NEW_IMAGE",
+        },
+        eventSourceARN: `${tableArn}/stream/2022-02-24T22:37:34.890`,
+    })),
 })
 
 export const createLambdaContext = (): Context => ({
