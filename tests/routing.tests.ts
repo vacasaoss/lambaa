@@ -436,4 +436,22 @@ describe("routing tests", () => {
             expect(response).to.be.undefined
         })
     })
+
+    describe("router options", () => {
+        it("calls beforeHandler() function", async () => {
+            const mock = sinon.mock()
+            const router = new Router({
+                beforeHandler: mock,
+            }).registerControllers([new TestController()])
+
+            const response = await router.route(
+                createAPIGatewayEvent({ resource: "test1", method: "GET" }),
+                context
+            )
+
+            expect(mock).to.be.called
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.equal("test1")
+        })
+    })
 })
