@@ -66,3 +66,7 @@ export type Handler<
 export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
     Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
 >
+
+export interface RouterOptions {
+    beforeHandler?: (controller: object, method: string) => void
+}

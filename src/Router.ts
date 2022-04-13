@@ -18,11 +18,21 @@ import {
     isSqsEvent,
     isScheduledEvent,
 } from "./typeGuards"
-import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
+import {
+    ControllerOptions,
+    Handler,
+    MiddlewarePipeline,
+    RouterOptions,
+} from "./types"
 
 export default class Router {
     private middleware: MiddlewarePipeline<any, any> = []
     private controllers: any[] = []
+    private options?: RouterOptions
+
+    constructor(options?: RouterOptions) {
+        this.options = options
+    }
 
     public registerMiddleware(
         ...middleware: MiddlewarePipeline<any, any>
@@ -124,7 +134,7 @@ export default class Router {
                 context,
                 pipeline,
                 (e: unknown, c: Context) =>
-                    controller[method](...[...args, e, c])
+                    this.executeHandler(controller, method, [...args, e, c])
             )
         }
 
@@ -132,6 +142,18 @@ export default class Router {
             message: "No configured route for this event",
             code: "ROUTE_NOT_FOUND",
         })
+    }
+
+    private async executeHandler(
+        controller: any,
+        method: string,
+        args: any[]
+    ): Promise<unknown> {
+        if (this.options?.beforeHandler) {
+            this.options.beforeHandler(controller, method)
+        }
+
+        return controller[method](...args)
     }
 
     private findRoutable(event: unknown):
