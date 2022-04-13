@@ -72,3 +72,9 @@ export type Handler<
 export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
     Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
 >
+
+export interface Destination {
+    controller: any
+    method: string
+    options: ControllerOptions
+}
