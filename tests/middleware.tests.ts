@@ -529,4 +529,26 @@ describe("middleware tests", () => {
             expect(events.shift()).to.be.undefined
         })
     })
+
+    it("receives middleware context", async () => {
+        const event = createAPIGatewayEvent({
+            method: "GET",
+            resource: "testControllerWithNoMiddleware1Ping1",
+        })
+
+        const router = new Router()
+            .registerController(new TestControllerWithNoMiddleware1())
+            .registerMiddleware(
+                async (event, context, next, middlewareContext) => {
+                    expect(middlewareContext).to.exist
+                    expect(middlewareContext?.controller).to.exist
+                    expect(middlewareContext?.method).to.equal("ping1")
+                    return next(event, context)
+                }
+            )
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+    })
 })
