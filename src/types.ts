@@ -4,11 +4,6 @@ import {
     APIGatewayProxyResult,
 } from "aws-lambda"
 
-export interface MiddlewareContext {
-    controller?: any
-    method?: string
-}
-
 export interface RequestOptions {
     required: boolean
 }
@@ -72,6 +67,11 @@ export type Handler<
 export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
     Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
 >
+
+export interface MiddlewareContext {
+    controller?: any
+    method?: string
+}
 
 export interface Destination {
     controller: any
