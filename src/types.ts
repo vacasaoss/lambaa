@@ -72,9 +72,3 @@ export interface MiddlewareContext {
     controller?: any
     method?: string
 }
-
-export interface Destination {
-    controller: any
-    method: string
-    options: ControllerOptions
-}

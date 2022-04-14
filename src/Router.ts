@@ -20,12 +20,13 @@ import {
     isScheduledEvent,
     isDynamoDbStreamEvent,
 } from "./typeGuards"
-import {
-    ControllerOptions,
-    Destination,
-    Handler,
-    MiddlewarePipeline,
-} from "./types"
+import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
+
+interface Destination {
+    controller: any
+    method: string
+    options: ControllerOptions
+}
 
 export default class Router {
     private middleware: MiddlewarePipeline<any, any> = []
