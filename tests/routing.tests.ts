@@ -1,7 +1,8 @@
 import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
-    DynamoDBStreamEvent, KinesisStreamEvent,
+    DynamoDBStreamEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -12,7 +13,8 @@ import Route, {
     API,
     DELETE,
     DynamoDB,
-    GET, Kinesis,
+    GET,
+    Kinesis,
     PATCH,
     POST,
     PUT,
@@ -24,7 +26,8 @@ import RouterError from "../src/RouterError"
 import {
     createAPIGatewayEvent,
     createAPIGatewayProxyEvent,
-    createDynamoDbStreamEvent, createKinesisStreamEvent,
+    createDynamoDbStreamEvent,
+    createKinesisStreamEvent,
     createLambdaContext as createLambdaContext,
     createScheduledEvent,
     createSQSEvent,
@@ -482,7 +485,6 @@ describe("routing tests", () => {
         it("routes event", async () => {
             const event = createKinesisStreamEvent(
                 "arn:aws:kinesis:us-east-1:123:test"
-
             )
 
             const response = await router.route(event, context)

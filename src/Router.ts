@@ -2,7 +2,8 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     Context,
-    DynamoDBStreamEvent, KinesisStreamEvent,
+    DynamoDBStreamEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
