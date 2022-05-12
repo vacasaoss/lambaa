@@ -1,7 +1,7 @@
 import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
-    DynamoDBStreamEvent,
+    DynamoDBStreamEvent, KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -12,7 +12,7 @@ import Route, {
     API,
     DELETE,
     DynamoDB,
-    GET,
+    GET, Kinesis,
     PATCH,
     POST,
     PUT,
@@ -24,7 +24,7 @@ import RouterError from "../src/RouterError"
 import {
     createAPIGatewayEvent,
     createAPIGatewayProxyEvent,
-    createDynamoDbStreamEvent,
+    createDynamoDbStreamEvent, createKinesisStreamEvent,
     createLambdaContext as createLambdaContext,
     createScheduledEvent,
     createSQSEvent,
@@ -125,6 +125,16 @@ class TestController {
         expect(dynamoDbStreamEvent.Records.length).to.be.greaterThan(0)
         expect(dynamoDbStreamEvent.Records[0].eventSourceARN).to.equal(
             "arn:aws:dynamodb:us-east-1:123:table/table-name/stream/2022-02-24T22:37:34.890"
+        )
+    }
+
+    @Kinesis("arn:aws:kinesis:us-east-1:123:test")
+    public async testKinesisStream1(
+        kinesisStreamEvent: KinesisStreamEvent
+    ): Promise<void> {
+        expect(kinesisStreamEvent.Records.length).to.be.greaterThan(0)
+        expect(kinesisStreamEvent.Records[0].eventSourceARN).to.equal(
+            "arn:aws:kinesis:us-east-1:123:test"
         )
     }
 }
@@ -464,6 +474,23 @@ describe("routing tests", () => {
 
         it("throws error if there is no handler for this arn", async () => {
             const event = createDynamoDbStreamEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes Kinesis stream events", () => {
+        it("routes event", async () => {
+            const event = createKinesisStreamEvent(
+                "arn:aws:kinesis:us-east-1:123:test"
+
+            )
+
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createKinesisStreamEvent("arn:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })
