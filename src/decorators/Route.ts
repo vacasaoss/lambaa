@@ -99,6 +99,27 @@ export function DynamoDB(tableArn: string): MethodDecorator {
 }
 
 /**
+ * Define a Kinesis stream event handler.
+ * @param arn The ARN of event stream ARN.
+ */
+export function Kinesis(arn: string): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute({ eventType: "Kinesis", arn: arn }, propertyKey)
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
+/**
  * Define an API Gateway event handler.
  */
 export const API = (method: HTTPMethod, resource: string) =>

@@ -34,6 +34,7 @@ import {
     DynamoDBStreamEvent,
     ScheduledEvent,
     SQSEvent,
+    KinesisStreamEvent,
 } from "aws-lambda"
 
 @Controller()
@@ -55,6 +56,11 @@ class ExampleController {
 
     @DynamoDB("<table ARN>")
     public receive(event: DynamoDBStreamEvent): void {
+        return
+    }
+
+    @Kinesis("<table ARN>")
+    public receive(event: KinesisStreamEvent): void {
         return
     }
 }

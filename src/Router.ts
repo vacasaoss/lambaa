@@ -3,6 +3,7 @@ import {
     APIGatewayProxyResult,
     Context,
     DynamoDBStreamEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -19,6 +20,7 @@ import {
     isSqsEvent,
     isScheduledEvent,
     isDynamoDbStreamEvent,
+    isKinesisStreamEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -90,6 +92,13 @@ export default class Router {
      * @param context The Lambda context.
      */
     public route(event: DynamoDBStreamEvent, context: Context): Promise<void>
+
+    /**
+     * Route an incoming Kinesis stream event to a controller.
+     * @param event The Kinesis stream event.
+     * @param context The Lambda context.
+     */
+    public route(event: KinesisStreamEvent, context: Context): Promise<void>
 
     public async route(event: unknown, context: Context): Promise<unknown> {
         const destination = this.findDestination(event)
@@ -255,6 +264,23 @@ export default class Router {
                     if (method) {
                         this.logDebugMessage(
                             `Passing Dynamo DB stream event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isKinesisStreamEvent(event) && event.Records.length > 0) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "Kinesis",
+                        arn: record.eventSourceARN,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Kinesis stream event to ${controller?.constructor?.name}.${method}(...)`
                         )
 
                         return { controller, method, options }

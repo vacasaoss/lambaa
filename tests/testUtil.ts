@@ -3,6 +3,7 @@ import {
     APIGatewayProxyEvent,
     Context,
     DynamoDBStreamEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -131,6 +132,29 @@ export const createDynamoDbStreamEvent = (
             StreamViewType: "NEW_IMAGE",
         },
         eventSourceARN: `${tableArn}/stream/2022-02-24T22:37:34.890`,
+    })),
+})
+
+export const createKinesisStreamEvent = (
+    ...tableArns: string[]
+): KinesisStreamEvent => ({
+    Records: tableArns.map((tableArn) => ({
+        kinesis: {
+            partitionKey: "partitionKey-03",
+            kinesisSchemaVersion: "1.0",
+            data: "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
+            sequenceNumber:
+                "49545115243490985018280067714973144582180062593244200961",
+            approximateArrivalTimestamp: 1428537600,
+        },
+        eventSource: "aws:kinesis",
+        eventID:
+            "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
+        invokeIdentityArn: "arn:aws:iam::EXAMPLE",
+        eventVersion: "1.0",
+        eventName: "aws:kinesis:record",
+        eventSourceARN: `${tableArn}`,
+        awsRegion: "us-east-1",
     })),
 })
 
