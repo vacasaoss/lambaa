@@ -32,7 +32,8 @@ export type MiddlewareFunction<
 > = (
     event: TEvent,
     context: Context,
-    next: Handler<TEvent, TResult>
+    next: Handler<TEvent, TResult>,
+    middlewareContext?: MiddlewareContext
 ) => Promise<TResult>
 
 /**
@@ -66,3 +67,8 @@ export type Handler<
 export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
     Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
 >
+
+export interface MiddlewareContext {
+    controller?: any
+    method?: string
+}

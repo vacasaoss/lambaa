@@ -3,6 +3,7 @@ import {
     APIGatewayProxyResult,
     Context,
     DynamoDBStreamEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -19,8 +20,15 @@ import {
     isSqsEvent,
     isScheduledEvent,
     isDynamoDbStreamEvent,
+    isKinesisStreamEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
+
+interface Destination {
+    controller: any
+    method: string
+    options: ControllerOptions
+}
 
 export default class Router {
     private middleware: MiddlewarePipeline<any, any> = []
@@ -85,18 +93,28 @@ export default class Router {
      */
     public route(event: DynamoDBStreamEvent, context: Context): Promise<void>
 
+    /**
+     * Route an incoming Kinesis stream event to a controller.
+     * @param event The Kinesis stream event.
+     * @param context The Lambda context.
+     */
+    public route(event: KinesisStreamEvent, context: Context): Promise<void>
+
     public async route(event: unknown, context: Context): Promise<unknown> {
+        const destination = this.findDestination(event)
         const pipeline = this.middleware.reverse()
-        return this.invoke(event, context, pipeline, (e: unknown, c: Context) =>
-            this.passToController(e, c)
-        )
+        const handler = (e: unknown, c: Context) =>
+            this.passToController(e, c, destination)
+
+        return this.invoke(event, context, pipeline, handler, destination)
     }
 
     private invoke(
         event: unknown,
         context: Context,
         pipeline: MiddlewarePipeline,
-        handler: Handler<unknown, unknown>
+        handler: Handler<unknown, unknown>,
+        destination: Destination | undefined
     ): Promise<unknown> {
         const pipelineCopy = [...pipeline]
         const middleware = pipelineCopy.pop()
@@ -105,36 +123,36 @@ export default class Router {
             return handler(event, context)
         }
 
+        const middlewareContext = {
+            controller: destination?.controller,
+            method: destination?.method,
+        }
+
         const next = (e: any, c: Context) =>
-            this.invoke(e, c, pipelineCopy, handler)
+            this.invoke(e, c, pipelineCopy, handler, destination)
 
         return "invoke" in middleware
-            ? middleware.invoke(event, context, next)
-            : middleware(event, context, next)
+            ? middleware.invoke(event, context, next, middlewareContext)
+            : middleware(event, context, next, middlewareContext)
     }
 
     private passToController(
         event: unknown,
-        context: Context
+        context: Context,
+        destination: Destination | undefined
     ): Promise<unknown> {
-        const routable = this.findRoutable(event)
-
-        if (routable) {
-            const { controller, method, options } = routable
+        if (destination) {
+            const { controller, method, options } = destination
             const args = replaceEventArgs(event, controller, method, [
                 event,
                 context,
             ])
 
             const pipeline = [...(options.middleware ?? [])].reverse()
+            const handler = (e: unknown, c: Context) =>
+                controller[method](...[...args, e, c])
 
-            return this.invoke(
-                event,
-                context,
-                pipeline,
-                (e: unknown, c: Context) =>
-                    controller[method](...[...args, e, c])
-            )
+            return this.invoke(event, context, pipeline, handler, destination)
         }
 
         throw new RouterError({
@@ -143,13 +161,7 @@ export default class Router {
         })
     }
 
-    private findRoutable(event: unknown):
-        | {
-              controller: any
-              method: string
-              options: ControllerOptions
-          }
-        | undefined {
+    private findDestination(event: unknown): Destination | undefined {
         for (const controller of this.controllers) {
             const options: ControllerOptions | undefined = Reflect.getMetadata(
                 CONTROLLER_METADATA_KEY,
@@ -252,6 +264,23 @@ export default class Router {
                     if (method) {
                         this.logDebugMessage(
                             `Passing Dynamo DB stream event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isKinesisStreamEvent(event) && event.Records.length > 0) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "Kinesis",
+                        arn: record.eventSourceARN,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Kinesis stream event to ${controller?.constructor?.name}.${method}(...)`
                         )
 
                         return { controller, method, options }
