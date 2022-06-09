@@ -3,6 +3,9 @@
   <h1>lambaa 🐑</h1>
 </a>
 <p>A small framework, with very few dependencies to help build API&#39;s using AWS API Gateway &amp; Lambda.</p>
+<blockquote>
+<p><strong>Visit <a href="https://vacasaoss.github.io/lambaa/index.html">vacasaoss.github.io/lambaa</a> for more docs.</strong></p>
+</blockquote>
 
 <a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
   <h2>Installation</h2>
@@ -25,7 +28,7 @@
   <h3>Controllers</h3>
 </a>
 <p>This library has the concept of controllers, similar to other web frameworks.</p>
-<p>To create a controller, add the <code>@Controller()</code> decorator to a class and define routes using one of the <a href="src/decorators/Route.ts">route decorators</a>, e.g. <code>@GET(&quot;/ping&quot;)</code>.</p>
+<p>To create a controller, add the <code>@Controller()</code> decorator to a class and define routes using one of the <a href="https://vacasaoss.github.io/lambaa/modules.html">route decorators</a>, e.g. <code>@GET(&quot;/ping&quot;)</code>.</p>
 <pre><code class="language-typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">Controller</span><span class="hl-1">, </span><span class="hl-0">GET</span><span class="hl-1">, </span><span class="hl-0">POST</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;lambaa&quot;</span><br/><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">APIGatewayProxyEvent</span><span class="hl-1">, </span><span class="hl-0">APIGatewayProxyResult</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;aws-lambda&quot;</span><br/><br/><span class="hl-1">@</span><span class="hl-5">Controller</span><span class="hl-1">()</span><br/><span class="hl-6">class</span><span class="hl-1"> </span><span class="hl-7">UserController</span><span class="hl-1"> {</span><br/><span class="hl-1">    @</span><span class="hl-5">GET</span><span class="hl-1">(</span><span class="hl-4">&quot;/user&quot;</span><span class="hl-1">)</span><br/><span class="hl-1">    </span><span class="hl-6">public</span><span class="hl-1"> </span><span class="hl-5">getUser</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-7">APIGatewayProxyEvent</span><span class="hl-1">): </span><span class="hl-7">APIGatewayProxyResult</span><span class="hl-1"> {}</span><br/><br/><span class="hl-1">    @</span><span class="hl-5">POST</span><span class="hl-1">(</span><span class="hl-4">&quot;/user&quot;</span><span class="hl-1">)</span><br/><span class="hl-1">    </span><span class="hl-6">public</span><span class="hl-1"> </span><span class="hl-5">addUser</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-7">APIGatewayProxyEvent</span><span class="hl-1">): </span><span class="hl-7">APIGatewayProxyResult</span><span class="hl-1"> {}</span><br/><span class="hl-1">}</span>
 </code></pre>
 
@@ -61,6 +64,9 @@
 <td><code>EventBridgeEvent</code></td>
 </tr>
 </tbody></table>
+<blockquote>
+<p><a href="https://vacasaoss.github.io/lambaa/modules.html">See more documentation about the supported event handler decorators here.</a></p>
+</blockquote>
 
 <a href="#setup" id="setup" style="color: inherit; text-decoration: none;">
   <h3>Setup</h3>
