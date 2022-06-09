@@ -23,6 +23,11 @@ type RouteProperties =
           eventType: "Kinesis"
           arn: string
       }
+    | {
+          eventType: "EventBridge"
+          detailType: string
+          source: string
+      }
 
 /**
  * Used to store routing data on controllers.

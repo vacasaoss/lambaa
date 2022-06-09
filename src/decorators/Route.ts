@@ -119,6 +119,36 @@ export function Kinesis(arn: string): MethodDecorator {
         return descriptor
     }
 }
+
+/**
+ * Define a EventBridge event handler.
+ * @param detailType The event `detail-type`. This identifies the fields and values that appear in the `detail` field.
+ * @param source The event source. This identifies the service that generated the event.
+ */
+export function EventBridge(
+    detailType: string,
+    source: string
+): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute(
+            { eventType: "EventBridge", detailType, source },
+            propertyKey
+        )
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
+
 /**
  * Define an API Gateway event handler.
  */

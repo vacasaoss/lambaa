@@ -21,6 +21,7 @@ import {
     isScheduledEvent,
     isDynamoDbStreamEvent,
     isKinesisStreamEvent,
+    isEventBridgeEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -285,6 +286,22 @@ export default class Router {
 
                         return { controller, method, options }
                     }
+                }
+            }
+
+            if (isEventBridgeEvent(event)) {
+                method = routeMap?.getRoute({
+                    eventType: "EventBridge",
+                    detailType: event["detail-type"],
+                    source: event.source,
+                })
+
+                if (method) {
+                    this.logDebugMessage(
+                        `Passing EventBridge event to ${controller?.constructor?.name}.${method}(...)`
+                    )
+
+                    return { controller, method, options }
                 }
             }
         }
