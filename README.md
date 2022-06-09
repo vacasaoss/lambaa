@@ -66,7 +66,7 @@ export const handler = router.getHandler()
 
 Your handler can be referenced in your `serverless.yml` as follows:
 
-```yml
+```yaml
 functions:
     ping:
         handler: src/index.handler
@@ -84,7 +84,7 @@ Generic proxy resources are also supported using the `{proxy+}` path variable.
 
 This can simplify the handler setup by allowing you to configure a single event to handle many different HTTP requests.
 
-```yml
+```yaml
 events:
     - http:
           path: /{proxy+}
