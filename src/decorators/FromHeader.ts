@@ -1,4 +1,4 @@
-import { RequestOptions } from "../types"
+import { RequestParameterOptions } from "../types"
 import { FROM_HEADER_METADATA_KEY } from "../constants"
 
 /**
@@ -7,7 +7,7 @@ import { FROM_HEADER_METADATA_KEY } from "../constants"
  */
 export default function FromHeader(
     name: string,
-    options: RequestOptions = { required: true }
+    options: RequestParameterOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =

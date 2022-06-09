@@ -1,4 +1,4 @@
-import { RequestOptions } from "../types"
+import { RequestParameterOptions } from "../types"
 import { FROM_BODY_METADATA_KEY } from "../constants"
 
 /**
@@ -6,7 +6,7 @@ import { FROM_BODY_METADATA_KEY } from "../constants"
  * @category API Gateway Request Parameter Decorator
  */
 export default function FromBody(
-    options: RequestOptions = { required: true }
+    options: RequestParameterOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =

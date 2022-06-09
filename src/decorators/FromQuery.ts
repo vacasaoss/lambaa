@@ -1,5 +1,5 @@
 import { FROM_QUERY_METADATA_KEY } from "../constants"
-import { RequestOptions } from "../types"
+import { RequestParameterOptions } from "../types"
 
 /**
  * Extract a parameter from the API Gateway request query string.
@@ -7,7 +7,7 @@ import { RequestOptions } from "../types"
  */
 export default function FromQuery(
     name: string,
-    options: RequestOptions = { required: true }
+    options: RequestParameterOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =

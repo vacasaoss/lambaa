@@ -4,23 +4,41 @@ import {
     APIGatewayProxyResult,
 } from "aws-lambda"
 
-export interface RequestOptions {
+/**
+ * Request parsing parameter decorator options.
+ */
+export interface RequestParameterOptions {
     required: boolean
 }
 
-export type ControllerOptions = {
+/**
+ * Additional options that can be provided to a `@Controller()` decorator.
+ */
+export interface ControllerOptions {
     middleware?: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
+
+    /**
+     * A controller base path will be prepended to any API Gateway event handler resource paths.
+     */
     basePath?: string
 }
 
 export type HTTPMethod = "GET" | "POST" | "DELETE" | "PATCH" | "PUT"
 
+/**
+ * A `RequestError` code.
+ * @category Error
+ */
 export type RequestErrorCode =
     | "MISSING_PATH_PARAMETER"
     | "MISSING_QUERY_PARAMETER"
     | "MISSING_REQUEST_DATA"
     | "MISSING_HEADER"
 
+/**
+ * A `RouterError` code.
+ * @category Error
+ */
 export type RouterErrorCode = "ROUTE_NOT_FOUND"
 
 /**
@@ -37,7 +55,7 @@ export type MiddlewareFunction<
 ) => Promise<TResult>
 
 /**
- * Defines middleware that can be added to the request pipeline.
+ * Defines a middleware class.
  */
 export interface Middleware<
     TEvent = APIGatewayProxyEvent,
@@ -54,11 +72,24 @@ export type Handler<
     TResult = APIGatewayProxyResult
 > = (r: TEvent, c: Context) => Promise<TResult>
 
+/**
+ * @internal
+ */
 export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
     Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
 >
 
+/**
+ * Context passed to a middleware `invoke` function.
+ */
 export interface MiddlewareContext {
+    /**
+     * The destination controller object.
+     */
     controller?: any
+
+    /**
+     * The destination method name.
+     */
     method?: string
 }

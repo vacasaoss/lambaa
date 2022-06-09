@@ -6,9 +6,11 @@
         "Event Handler Decorator",
         "API Gateway Request Parameter Decorator",
         "Other Decorator",
+        "Error",
         "*"
     ],
     "categorizeByGroup": false,
     "darkHighlightTheme": "dark-plus",
-    "excludeInternal": true
+    "excludeInternal": true,
+    "exclude": "**/*+(constants).ts"
 }
