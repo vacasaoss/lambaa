@@ -1,7 +1,7 @@
 import { RouterErrorCode } from "./types"
 
 /**
- * Represents a failure to route an event.
+ * An error thrown when the `Router` is unable to route an event.
  */
 export default class RouterError extends Error {
     public isRouterError = true

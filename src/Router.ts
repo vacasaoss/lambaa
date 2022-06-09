@@ -31,6 +31,9 @@ interface Destination {
     options: ControllerOptions
 }
 
+/**
+ * The `Router` is responsible for routing Lambda events to controllers and executing the middleware pipeline.
+ */
 export default class Router {
     private middleware: MiddlewarePipeline<any, any> = []
     private controllers: any[] = []
@@ -54,6 +57,7 @@ export default class Router {
 
     /**
      * Get a Lambda event handler.
+     * - This is the function that should be provided to the Lambda runtime.
      */
     public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
         TEvent,
@@ -101,6 +105,11 @@ export default class Router {
      */
     public route(event: KinesisStreamEvent, context: Context): Promise<void>
 
+    /**
+     * Route a Lambda event through the middleware pipeline, to a matching controller event handler.
+     * @param event The Lambda event.
+     * @param context The Lambda context.
+     */
     public async route(event: unknown, context: Context): Promise<unknown> {
         const destination = this.findDestination(event)
         const pipeline = this.middleware.reverse()
