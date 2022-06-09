@@ -15,6 +15,9 @@ export interface RequestParameterOptions {
  * Additional options that can be provided to a `@Controller()` decorator.
  */
 export interface ControllerOptions {
+    /**
+     * A list of middleware that will run before any event handler in the controller.
+     */
     middleware?: Array<Middleware<any, any> | MiddlewareFunction<any, any>>
 
     /**
