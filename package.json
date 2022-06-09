@@ -17,7 +17,8 @@
         "prettier": "prettier --write './**/*.{ts,json,md}'",
         "lint": "eslint --config '.eslintrc.json' 'src/**/*.ts'",
         "test": "mocha \"tests/**/*.tests.ts\"",
-        "coverage": "nyc mocha \"tests/**/*.tests.ts\""
+        "coverage": "nyc mocha \"tests/**/*.tests.ts\"",
+        "docs": "typedoc"
     },
     "keywords": [
         "api",
