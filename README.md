@@ -2,6 +2,8 @@
 
 A small framework, with very few dependencies to help build API's using AWS API Gateway & Lambda.
 
+> **Visit [vacasaoss.github.io/lambaa](https://vacasaoss.github.io/lambaa/index.html) for more docs.**
+
 ## Installation
 
 ```
@@ -22,7 +24,7 @@ Have a look at a [Serverless project](examples/serverless) created using the `aw
 
 This library has the concept of controllers, similar to other web frameworks.
 
-To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](src/decorators/Route.ts), e.g. `@GET("/ping")`.
+To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](https://vacasaoss.github.io/lambaa/modules.html), e.g. `@GET("/ping")`.
 
 ```typescript
 import { Controller, GET, POST } from "lambaa"
@@ -49,6 +51,8 @@ The following event types are supported in addition to API Gateway events.
 | `@DynamoDB()`    | `DynamoDBStreamEvent` |
 | `@Kinesis()`     | `KinesisStreamEvent`  |
 | `@EventBridge()` | `EventBridgeEvent`    |
+
+> [See more documentation about the supported event handler decorators here.](https://vacasaoss.github.io/lambaa/modules.html)
 
 ### Setup
 
