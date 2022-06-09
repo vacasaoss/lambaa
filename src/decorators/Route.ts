@@ -128,12 +128,12 @@ export function Kinesis(arn: string): MethodDecorator {
 /**
  * Define an EventBridge event handler.
  * @category Event Handler Decorator
- * @param detailType The event `detail-type`. This identifies the fields and values that appear in the `detail` field.
  * @param source The event source. This identifies the service that generated the event.
+ * @param detailType The event `detail-type`. This identifies the fields and values that appear in the `detail` field.
  */
 export function EventBridge(
-    detailType: string,
-    source: string
+    source: string,
+    detailType: string
 ): MethodDecorator {
     return (
         target: any,

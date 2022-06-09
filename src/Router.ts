@@ -3,6 +3,7 @@ import {
     APIGatewayProxyResult,
     Context,
     DynamoDBStreamEvent,
+    EventBridgeEvent,
     KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
@@ -104,6 +105,16 @@ export default class Router {
      * @param context The Lambda context.
      */
     public route(event: KinesisStreamEvent, context: Context): Promise<void>
+
+    /**
+     * Route an incoming EventBridge event to a controller.
+     * @param event The EventBridge event.
+     * @param context The Lambda context.
+     */
+    public route<TDetailType extends string, TDetail>(
+        event: EventBridgeEvent<TDetailType, TDetail>,
+        context: Context
+    ): Promise<void>
 
     /**
      * Route a Lambda event through the middleware pipeline, to a matching controller event handler.

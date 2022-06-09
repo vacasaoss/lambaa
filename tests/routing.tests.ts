@@ -2,6 +2,7 @@ import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
     DynamoDBStreamEvent,
+    EventBridgeEvent,
     KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
@@ -13,6 +14,7 @@ import Route, {
     API,
     DELETE,
     DynamoDB,
+    EventBridge,
     GET,
     Kinesis,
     PATCH,
@@ -27,6 +29,7 @@ import {
     createAPIGatewayEvent,
     createAPIGatewayProxyEvent,
     createDynamoDbStreamEvent,
+    createEventBridgeEvent,
     createKinesisStreamEvent,
     createLambdaContext as createLambdaContext,
     createScheduledEvent,
@@ -138,6 +141,16 @@ class TestController {
         expect(kinesisStreamEvent.Records.length).to.be.greaterThan(0)
         expect(kinesisStreamEvent.Records[0].eventSourceARN).to.equal(
             "arn:aws:kinesis:us-east-1:123:test"
+        )
+    }
+
+    @EventBridge("aws.rds", "RDS DB Instance Event")
+    public async testEventBridgeEvent(
+        eventBridgeEvent: EventBridgeEvent<string, unknown>
+    ): Promise<void> {
+        expect(eventBridgeEvent.source).to.equal("aws.rds")
+        expect(eventBridgeEvent["detail-type"]).to.equal(
+            "RDS DB Instance Event"
         )
     }
 }
@@ -493,6 +506,23 @@ describe("routing tests", () => {
 
         it("throws error if there is no handler for this arn", async () => {
             const event = createKinesisStreamEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes EventBridge events", () => {
+        it("routes event", async () => {
+            const event = createEventBridgeEvent(
+                "aws.rds",
+                "RDS DB Instance Event"
+            )
+
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this source", async () => {
+            const event = createEventBridgeEvent("aws.sns", "SNS Event")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })
