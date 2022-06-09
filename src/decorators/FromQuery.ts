@@ -2,7 +2,8 @@ import { FROM_QUERY_METADATA_KEY } from "../constants"
 import { RequestOptions } from "../types"
 
 /**
- * Extract a parameter from the request query string.
+ * Extract a parameter from the API Gateway request query string.
+ * @category API Gateway Request Decorator
  */
 export default function FromQuery(
     name: string,

@@ -31,6 +31,7 @@ type RouteProperties =
 
 /**
  * Used to store routing data on controllers.
+ * @internal
  */
 export default class RouteMap {
     constructor(private map = new Map<string, string>()) {}

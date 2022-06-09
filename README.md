@@ -27,41 +27,14 @@ To create a controller, add the `@Controller()` decorator to a class and define 
 > Currently only API Gateway, Scheduled, SQS and Dynamo DB stream events are supported.
 
 ```typescript
-import { Controller, GET, Schedule, SQS, DynamoDB } from "lambaa"
-import {
-    APIGatewayProxyEvent,
-    APIGatewayProxyResult,
-    DynamoDBStreamEvent,
-    ScheduledEvent,
-    SQSEvent,
-    KinesisStreamEvent,
-} from "aws-lambda"
+import { Controller, GET } from "lambaa"
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
 
 @Controller()
 class ExampleController {
     @GET("/ping")
     public ping(event: APIGatewayProxyEvent): APIGatewayProxyResult {
         return { statusCode: 200, body: "pong" }
-    }
-
-    @Schedule("<event rule ARN>")
-    public receive(event: ScheduledEvent): void {
-        return
-    }
-
-    @SQS("<queue ARN>")
-    public receive(event: SQSEvent): void {
-        return
-    }
-
-    @DynamoDB("<table ARN>")
-    public receive(event: DynamoDBStreamEvent): void {
-        return
-    }
-
-    @Kinesis("<table ARN>")
-    public receive(event: KinesisStreamEvent): void {
-        return
     }
 }
 ```

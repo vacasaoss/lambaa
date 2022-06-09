@@ -2,7 +2,8 @@ import { RequestOptions } from "../types"
 import { FROM_HEADER_METADATA_KEY } from "../constants"
 
 /**
- * Extract a header value from the request.
+ * Extract a header value from the API Gateway request.
+ * @category API Gateway Request Decorator
  */
 export default function FromHeader(
     name: string,

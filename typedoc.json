@@ -1,0 +1,9 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["./src/index.ts"],
+    "out": "doc",
+    "categoryOrder": ["Event Handler Decorator", "*"],
+    "categorizeByGroup": false,
+    "darkHighlightTheme": "dark-plus",
+    "excludeInternal": true
+}
