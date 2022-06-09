@@ -2,7 +2,12 @@
     "$schema": "https://typedoc.org/schema.json",
     "entryPoints": ["./src/index.ts"],
     "out": "doc",
-    "categoryOrder": ["Event Handler Decorator", "*"],
+    "categoryOrder": [
+        "Event Handler Decorator",
+        "API Gateway Request Parameter Decorator",
+        "Other Decorator",
+        "*"
+    ],
     "categorizeByGroup": false,
     "darkHighlightTheme": "dark-plus",
     "excludeInternal": true

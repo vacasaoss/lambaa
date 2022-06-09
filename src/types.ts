@@ -47,16 +47,6 @@ export interface Middleware<
 }
 
 /**
- * Defines controller/ middleware, registered with the controller.
- */
-export interface RouterRegistration<TEvent = any, TResult = any> {
-    controllers: any[]
-    middleware?: Array<
-        Middleware<TEvent, TResult> | MiddlewareFunction<TEvent, TResult>
-    >
-}
-
-/**
  * Defines a Lambda event handler.
  */
 export type Handler<

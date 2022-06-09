@@ -3,7 +3,7 @@ import { RequestOptions } from "../types"
 
 /**
  * Extract a parameter from the API Gateway request query string.
- * @category API Gateway Request Decorator
+ * @category API Gateway Request Parameter Decorator
  */
 export default function FromQuery(
     name: string,

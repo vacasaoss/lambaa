@@ -3,7 +3,7 @@ import { FROM_BODY_METADATA_KEY } from "../constants"
 
 /**
  * Extract and parse JSON data from the API Gateway request body.
- * @category API Gateway Request Decorator
+ * @category API Gateway Request Parameter Decorator
  */
 export default function FromBody(
     options: RequestOptions = { required: true }
