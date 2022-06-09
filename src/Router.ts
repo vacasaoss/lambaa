@@ -34,6 +34,7 @@ interface Destination {
 
 /**
  * The `Router` is responsible for routing Lambda events to controllers and executing the middleware pipeline.
+ * @category Router
  */
 export default class Router {
     private middleware: MiddlewarePipeline<any, any> = []

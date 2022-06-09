@@ -3,8 +3,8 @@ import replaceEventArgs from "../replaceEventArgs"
 import { Context } from "aws-lambda"
 
 /**
- * Add middleware to the request piepline of a single route.
- * @category Other Decorator
+ * Attach middleware to an event handler method.
+ * @category Middleware
  */
 export default function Use<TEvent, TResponse>(
     middleware:

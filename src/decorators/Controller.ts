@@ -3,7 +3,7 @@ import { ControllerOptions, MiddlewareFunction, Middleware } from "../types"
 
 /**
  * Define a Lambaa controller.
- * @category Other Decorator
+ * @category Controller
  */
 export default function Controller(): ClassDecorator
 export default function Controller(basePath: string): ClassDecorator

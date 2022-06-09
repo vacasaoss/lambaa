@@ -6,6 +6,7 @@ import {
 
 /**
  * Request parsing parameter decorator options.
+ * @category API Gateway Request Parameter Decorator
  */
 export interface RequestParameterOptions {
     required: boolean
@@ -13,6 +14,7 @@ export interface RequestParameterOptions {
 
 /**
  * Additional options that can be provided to a `@Controller()` decorator.
+ * @category Controller
  */
 export interface ControllerOptions {
     /**
@@ -46,6 +48,7 @@ export type RouterErrorCode = "ROUTE_NOT_FOUND"
 
 /**
  * Defines a middleware invoke function.
+ * @category Middleware
  */
 export type MiddlewareFunction<
     TEvent = APIGatewayProxyEvent,
@@ -59,6 +62,7 @@ export type MiddlewareFunction<
 
 /**
  * Defines a middleware class.
+ * @category Middleware
  */
 export interface Middleware<
     TEvent = APIGatewayProxyEvent,
@@ -69,6 +73,7 @@ export interface Middleware<
 
 /**
  * Defines a Lambda event handler.
+ * @category Middleware
  */
 export type Handler<
     TEvent = APIGatewayProxyEvent,
@@ -84,6 +89,7 @@ export type MiddlewarePipeline<TEvent = unknown, TResult = unknown> = Array<
 
 /**
  * Context passed to a middleware `invoke` function.
+ * @category Middleware
  */
 export interface MiddlewareContext {
     /**

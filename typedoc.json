@@ -3,14 +3,17 @@
     "entryPoints": ["./src/index.ts"],
     "out": "doc",
     "categoryOrder": [
+        "Router",
+        "Controller",
         "Event Handler Decorator",
-        "API Gateway Request Parameter Decorator",
-        "Other Decorator",
+        "Middleware",
         "Error",
+        "API Gateway Request Parameter Decorator",
         "*"
     ],
     "categorizeByGroup": false,
     "darkHighlightTheme": "dark-plus",
     "excludeInternal": true,
-    "exclude": "**/*+(constants).ts"
+    "exclude": "**/*+(constants).ts",
+    "includeVersion": true
 }
