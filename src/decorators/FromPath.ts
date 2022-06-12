@@ -1,7 +1,8 @@
 import { FROM_PATH_METADATA_KEY } from "../constants"
 
 /**
- * Extract a parameter from the request resource path.
+ * Extract a parameter from the API Gateway request resource path.
+ * @category API Gateway Request Parameter Decorator
  */
 export default function FromPath(name: string): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {

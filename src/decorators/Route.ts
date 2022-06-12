@@ -3,8 +3,9 @@ import RouteMap from "../RouteMap"
 import { HTTPMethod } from "../types"
 
 /**
- * Define a request handler route.
- * @param method The request HTTP method.
+ * Define an API Gateway request handler.
+ * @category Event Handler Decorator
+ * @param method The {@link HTTPMethod}.
  * @param resource The request resource path.
  */
 export default function Route(
@@ -33,6 +34,7 @@ export default function Route(
 
 /**
  * Define an SQS event handler.
+ * @category Event Handler Decorator
  * @param arn The ARN of the queue.
  */
 export function SQS(arn: string): MethodDecorator {
@@ -54,7 +56,8 @@ export function SQS(arn: string): MethodDecorator {
 }
 
 /**
- * Define an Scheduled event handler.
+ * Define a Scheduled event handler.
+ * @category Event Handler Decorator
  * @param arn The ARN of the event rule.
  * @see https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
  */
@@ -78,6 +81,7 @@ export function Schedule(arn: string): MethodDecorator {
 
 /**
  * Define a Dynamo DB stream event handler.
+ * @category Event Handler Decorator
  * @param tableArn The ARN of the table (not the event stream ARN).
  */
 export function DynamoDB(tableArn: string): MethodDecorator {
@@ -100,7 +104,8 @@ export function DynamoDB(tableArn: string): MethodDecorator {
 
 /**
  * Define a Kinesis stream event handler.
- * @param arn The ARN of event stream ARN.
+ * @category Event Handler Decorator
+ * @param arn The ARN of the event stream.
  */
 export function Kinesis(arn: string): MethodDecorator {
     return (
@@ -112,45 +117,84 @@ export function Kinesis(arn: string): MethodDecorator {
             Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
             new RouteMap()
 
-        routeMap.addRoute({ eventType: "Kinesis", arn: arn }, propertyKey)
+        routeMap.addRoute({ eventType: "Kinesis", arn }, propertyKey)
 
         Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
 
         return descriptor
     }
 }
+
+/**
+ * Define an EventBridge event handler.
+ * @category Event Handler Decorator
+ * @param source The event source. This identifies the service that generated the event.
+ * @param detailType The event `detail-type`. This identifies the fields and values that appear in the `detail` field.
+ */
+export function EventBridge(
+    source: string,
+    detailType: string
+): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute(
+            { eventType: "EventBridge", detailType, source },
+            propertyKey
+        )
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
+
 /**
  * Define an API Gateway event handler.
+ * @category Event Handler Decorator
+ * @param method The {@link HTTPMethod}.
+ * @param resource The request resource path.
  */
 export const API = (method: HTTPMethod, resource: string) =>
     Route(method, resource)
 
 /**
- * Define an HTTP `GET` request handler.
+ * Define an API Gateway HTTP `GET` request handler.
+ * @category Event Handler Decorator
  * @param resource The request resource path.
  */
 export const GET = (resource: string) => Route("GET", resource)
 
 /**
- * Define an HTTP `POST` request handler.
+ * Define an API Gateway HTTP `POST` request handler.
+ * @category Event Handler Decorator
  * @param resource The request resource path.
  */
 export const POST = (resource: string) => Route("POST", resource)
 
 /**
- * Define an HTTP `DELETE` request handler.
+ * Define an API Gateway HTTP `DELETE` request handler.
+ * @category Event Handler Decorator
  * @param resource The request resource path.
  */
 export const DELETE = (resource: string) => Route("DELETE", resource)
 
 /**
- * Define an HTTP `PATCH` request handler.
+ * Define an API Gateway HTTP `PATCH` request handler.
+ * @category Event Handler Decorator
  * @param resource The request resource path.
  */
 export const PATCH = (resource: string) => Route("PATCH", resource)
 
 /**
- * Define an HTTP `PUT` request handler.
+ * Define an API Gateway HTTP `PUT` request handler.
+ * @category Event Handler Decorator
  * @param resource The request resource path.
  */
 export const PUT = (resource: string) => Route("PUT", resource)
