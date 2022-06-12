@@ -13,7 +13,7 @@
     ],
     "scripts": {
         "build": "tsc",
-        "prepare": "tsc",
+        "prepare": "husky install && tsc",
         "prettier": "prettier --write './**/*.{ts,json,md}'",
         "lint": "eslint --config '.eslintrc.json' 'src/**/*.ts'",
         "test": "mocha \"tests/**/*.tests.ts\"",
