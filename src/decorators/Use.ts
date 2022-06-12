@@ -4,7 +4,7 @@ import { Context } from "aws-lambda"
 
 /**
  * Attach middleware to an event handler method.
- * @category Middleware
+ * @category Middleware1
  */
 export default function Use<TEvent, TResponse>(
     middleware:
