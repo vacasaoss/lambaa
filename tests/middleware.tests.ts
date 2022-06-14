@@ -530,7 +530,7 @@ describe("middleware tests", () => {
         })
     })
 
-    it("receives middleware context", async () => {
+    it("receives middleware context when added to router using .registerMiddleware(...)", async () => {
         const event = createAPIGatewayEvent({
             method: "GET",
             resource: "testControllerWithNoMiddleware1Ping1",
@@ -546,6 +546,33 @@ describe("middleware tests", () => {
                     return next(event, context)
                 }
             )
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+    })
+
+    it("receives middleware context when added to method  using @Use(...)", async () => {
+        const event = createAPIGatewayEvent({
+            method: "GET",
+            resource: "ping",
+        })
+
+        @Controller()
+        class TestController {
+            @Use(async (event, context, next, middlewareContext) => {
+                expect(middlewareContext).to.exist
+                expect(middlewareContext?.controller).to.exist
+                expect(middlewareContext?.method).to.equal("ping")
+                return next(event, context)
+            })
+            @GET("/ping")
+            public ping(): APIGatewayProxyResult {
+                return { statusCode: 200, body: "" }
+            }
+        }
+
+        const router = new Router().registerController(new TestController())
 
         const response = await router.route(event, context)
 
