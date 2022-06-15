@@ -166,6 +166,7 @@ export default class Router {
     ): Promise<unknown> {
         if (destination) {
             const { controller, method, options } = destination
+            const { middleware: controllerMiddleware } = options
 
             const handlerMiddleware =
                 Reflect.getMetadata(
@@ -175,7 +176,7 @@ export default class Router {
                 ) ?? []
 
             const pipeline = [
-                ...(options.middleware ?? []),
+                ...(controllerMiddleware ?? []),
                 ...handlerMiddleware.reverse(),
             ].reverse()
 
