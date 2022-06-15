@@ -1,15 +1,11 @@
 import getCoercionFn from "../coerce"
 import { FROM_PATH_METADATA_KEY } from "../constants"
-import { RequestOptions } from "../types"
 
 /**
  * Extract a parameter from the API Gateway request resource path.
  * @category API Gateway Request Parameter Decorator
  */
-export default function FromPath(
-    name: string,
-    options: Omit<RequestOptions, "required"> = {}
-): ParameterDecorator {
+export default function FromPath(name: string): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =
             Reflect.getOwnMetadata(
@@ -22,7 +18,6 @@ export default function FromPath(
             name,
             index,
             options: {
-                ...options,
                 coerce: getCoercionFn(target, propertyKey, index),
             },
         })
