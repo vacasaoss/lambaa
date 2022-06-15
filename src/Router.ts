@@ -167,7 +167,7 @@ export default class Router {
         if (destination) {
             const { controller, method, options } = destination
 
-            const controllerMiddleware =
+            const handlerMiddleware =
                 Reflect.getMetadata(
                     ROUTE_HANDLER_MIDDLEWARE_KEY,
                     controller,
@@ -176,7 +176,7 @@ export default class Router {
 
             const pipeline = [
                 ...(options.middleware ?? []),
-                ...controllerMiddleware,
+                ...handlerMiddleware,
             ].reverse()
 
             const handler = (e: unknown, c: Context) => {
