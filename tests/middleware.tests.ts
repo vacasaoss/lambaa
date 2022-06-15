@@ -69,6 +69,7 @@ class TestControllerWithSingleMiddleware1 {
 
     @GET("testControllerWithUseMiddleware")
     @Use(new TestMiddleware("2"))
+    @Use(new TestMiddleware("4"))
     public ping3() {
         events.push("testControllerWithUseMiddleware")
         return { statusCode: 200, body: "" }
@@ -522,7 +523,9 @@ describe("middleware tests", () => {
             expect(events.shift()).to.equal("middleware-3-pre")
             expect(events.shift()).to.equal("middleware-1-pre")
             expect(events.shift()).to.equal("middleware-2-pre")
+            expect(events.shift()).to.equal("middleware-4-pre")
             expect(events.shift()).to.equal("testControllerWithUseMiddleware") // prettier-ignore
+            expect(events.shift()).to.equal("middleware-4-post")
             expect(events.shift()).to.equal("middleware-2-post")
             expect(events.shift()).to.equal("middleware-1-post")
             expect(events.shift()).to.equal("middleware-3-post")

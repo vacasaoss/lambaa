@@ -176,7 +176,7 @@ export default class Router {
 
             const pipeline = [
                 ...(options.middleware ?? []),
-                ...handlerMiddleware,
+                ...handlerMiddleware.reverse(),
             ].reverse()
 
             const handler = (e: unknown, c: Context) => {
