@@ -3,6 +3,8 @@ import {
     APIGatewayProxyResult,
     Context,
     DynamoDBStreamEvent,
+    EventBridgeEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -19,6 +21,8 @@ import {
     isSqsEvent,
     isScheduledEvent,
     isDynamoDbStreamEvent,
+    isKinesisStreamEvent,
+    isEventBridgeEvent,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -28,6 +32,10 @@ interface Destination {
     options: ControllerOptions
 }
 
+/**
+ * The `Router` is responsible for routing Lambda events to controllers and executing the middleware pipeline.
+ * @category Router
+ */
 export default class Router {
     private middleware: MiddlewarePipeline<any, any> = []
     private controllers: any[] = []
@@ -51,6 +59,7 @@ export default class Router {
 
     /**
      * Get a Lambda event handler.
+     * - This is the function that should be provided to the Lambda runtime.
      */
     public getHandler<TEvent = unknown, TResult = unknown>(): Handler<
         TEvent,
@@ -91,6 +100,28 @@ export default class Router {
      */
     public route(event: DynamoDBStreamEvent, context: Context): Promise<void>
 
+    /**
+     * Route an incoming Kinesis stream event to a controller.
+     * @param event The Kinesis stream event.
+     * @param context The Lambda context.
+     */
+    public route(event: KinesisStreamEvent, context: Context): Promise<void>
+
+    /**
+     * Route an incoming EventBridge event to a controller.
+     * @param event The EventBridge event.
+     * @param context The Lambda context.
+     */
+    public route<TDetailType extends string, TDetail>(
+        event: EventBridgeEvent<TDetailType, TDetail>,
+        context: Context
+    ): Promise<void>
+
+    /**
+     * Route a Lambda event through the middleware pipeline, to a matching controller event handler.
+     * @param event The Lambda event.
+     * @param context The Lambda context.
+     */
     public async route(event: unknown, context: Context): Promise<unknown> {
         const destination = this.findDestination(event)
         const pipeline = this.middleware.reverse()
@@ -259,6 +290,39 @@ export default class Router {
 
                         return { controller, method, options }
                     }
+                }
+            }
+
+            if (isKinesisStreamEvent(event) && event.Records.length > 0) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "Kinesis",
+                        arn: record.eventSourceARN,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing Kinesis stream event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
+                }
+            }
+
+            if (isEventBridgeEvent(event)) {
+                method = routeMap?.getRoute({
+                    eventType: "EventBridge",
+                    detailType: event["detail-type"],
+                    source: event.source,
+                })
+
+                if (method) {
+                    this.logDebugMessage(
+                        `Passing EventBridge event to ${controller?.constructor?.name}.${method}(...)`
+                    )
+
+                    return { controller, method, options }
                 }
             }
         }

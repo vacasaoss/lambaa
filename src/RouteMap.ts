@@ -19,9 +19,19 @@ type RouteProperties =
           eventType: "Dynamo"
           arn: string
       }
+    | {
+          eventType: "Kinesis"
+          arn: string
+      }
+    | {
+          eventType: "EventBridge"
+          detailType: string
+          source: string
+      }
 
 /**
  * Used to store routing data on controllers.
+ * @internal
  */
 export default class RouteMap {
     constructor(private map = new Map<string, string>()) {}
@@ -42,9 +52,15 @@ export default class RouteMap {
         } else if (
             route.eventType === "SQS" ||
             route.eventType === "Schedule" ||
-            route.eventType === "Dynamo"
+            route.eventType === "Dynamo" ||
+            route.eventType === "Kinesis"
         ) {
             this.map.set(route.arn, propertyKey.toString())
+        } else if (route.eventType === "EventBridge") {
+            this.map.set(
+                `${route.source.toLowerCase()}_${route.detailType.toLowerCase()}`,
+                propertyKey.toString()
+            )
         }
     }
 
@@ -66,12 +82,21 @@ export default class RouteMap {
             }
 
             return this.map.get(`${route.resource}_${route.method}`)
-        } else if (
+        }
+
+        if (
             route.eventType === "SQS" ||
             route.eventType === "Schedule" ||
-            route.eventType === "Dynamo"
+            route.eventType === "Dynamo" ||
+            route.eventType === "Kinesis"
         ) {
             return this.map.get(route.arn)
+        }
+
+        if (route.eventType === "EventBridge") {
+            return this.map.get(
+                `${route.source.toLowerCase()}_${route.detailType.toLowerCase()}`
+            )
         }
     }
 

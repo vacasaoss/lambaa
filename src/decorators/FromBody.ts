@@ -1,11 +1,12 @@
 import { FROM_BODY_METADATA_KEY } from "../constants"
-import { RequestOptions } from "../types"
+import { RequestParameterOptions } from "../types"
 
 /**
- * Extract and parse JSON data from the request body.
+ * Extract and parse JSON data from the API Gateway request body.
+ * @category API Gateway Request Parameter Decorator
  */
 export default function FromBody(
-    options: RequestOptions = { required: true }
+    options: RequestParameterOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =

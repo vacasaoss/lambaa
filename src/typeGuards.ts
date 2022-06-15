@@ -3,6 +3,8 @@ import {
     DynamoDBStreamEvent,
     ScheduledEvent,
     SQSEvent,
+    KinesisStreamEvent,
+    EventBridgeEvent,
 } from "aws-lambda"
 
 export const isApiGatewayEvent = (
@@ -42,4 +44,21 @@ export const isDynamoDbStreamEvent = (
             ({ eventSource }) => eventSource === "aws:dynamodb"
         ) !== undefined
     )
+}
+
+export const isKinesisStreamEvent = (
+    event: unknown
+): event is KinesisStreamEvent => {
+    const e = event as DynamoDBStreamEvent
+    return (
+        e?.Records?.find(({ eventSource }) => eventSource === "aws:kinesis") !==
+        undefined
+    )
+}
+
+export const isEventBridgeEvent = (
+    event: unknown
+): event is EventBridgeEvent<string, unknown> => {
+    const e = event as EventBridgeEvent<string, unknown>
+    return e["detail-type"] !== undefined && e.source !== undefined
 }

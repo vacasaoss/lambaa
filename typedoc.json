@@ -1,0 +1,19 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["./src/index.ts"],
+    "out": "docs",
+    "categoryOrder": [
+        "Router",
+        "Controller",
+        "Event Handler Decorator",
+        "Middleware",
+        "Error",
+        "API Gateway Request Parameter Decorator",
+        "*"
+    ],
+    "categorizeByGroup": false,
+    "darkHighlightTheme": "dark-plus",
+    "excludeInternal": true,
+    "exclude": "**/*+(constants).ts",
+    "includeVersion": true
+}

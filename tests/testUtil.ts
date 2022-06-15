@@ -3,6 +3,8 @@ import {
     APIGatewayProxyEvent,
     Context,
     DynamoDBStreamEvent,
+    EventBridgeEvent,
+    KinesisStreamEvent,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -132,6 +134,51 @@ export const createDynamoDbStreamEvent = (
         },
         eventSourceARN: `${tableArn}/stream/2022-02-24T22:37:34.890`,
     })),
+})
+
+export const createKinesisStreamEvent = (
+    ...tableArns: string[]
+): KinesisStreamEvent => ({
+    Records: tableArns.map((tableArn) => ({
+        kinesis: {
+            partitionKey: "partitionKey-03",
+            kinesisSchemaVersion: "1.0",
+            data: "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
+            sequenceNumber:
+                "49545115243490985018280067714973144582180062593244200961",
+            approximateArrivalTimestamp: 1428537600,
+        },
+        eventSource: "aws:kinesis",
+        eventID:
+            "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
+        invokeIdentityArn: "arn:aws:iam::EXAMPLE",
+        eventVersion: "1.0",
+        eventName: "aws:kinesis:record",
+        eventSourceARN: `${tableArn}`,
+        awsRegion: "us-east-1",
+    })),
+})
+
+export const createEventBridgeEvent = (
+    source: string,
+    detailType: string
+): EventBridgeEvent<string, unknown> => ({
+    source,
+    "detail-type": detailType,
+    version: "0",
+    id: "fe8d3c65-xmpl-c5c3-2c87-81584709a377",
+    account: "123456789012",
+    time: "2020-04-28T07:20:20Z",
+    region: "us-east-2",
+    resources: ["arn:aws:rds:us-east-2:123456789012:db:rdz6xmpliljlb1"],
+    detail: {
+        EventCategories: ["backup"],
+        SourceType: "DB_INSTANCE",
+        SourceArn: "arn:aws:rds:us-east-2:123456789012:db:rdz6xmpliljlb1",
+        Date: "2020-04-28T07:20:20.112Z",
+        Message: "Finished DB Instance backup",
+        SourceIdentifier: "rdz6xmpliljlb1",
+    },
 })
 
 export const createLambdaContext = (): Context => ({

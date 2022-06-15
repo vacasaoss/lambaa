@@ -1,13 +1,14 @@
 import getCoercionFn from "../coerce"
 import { FROM_HEADER_METADATA_KEY } from "../constants"
-import { RequestOptions } from "../types"
+import { RequestParameterOptions } from "../types"
 
 /**
- * Extract a header value from the request.
+ * Extract a header value from the API Gateway request.
+ * @category API Gateway Request Parameter Decorator
  */
 export default function FromHeader(
     name: string,
-    options: RequestOptions = { required: true }
+    options: RequestParameterOptions = { required: true }
 ): ParameterDecorator {
     return (target: any, propertyKey: string | symbol, index: number): void => {
         const existing: any[] =
