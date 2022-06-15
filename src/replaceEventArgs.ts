@@ -5,7 +5,7 @@ import {
     FROM_HEADER_METADATA_KEY,
     FROM_PATH_METADATA_KEY,
     FROM_QUERY_METADATA_KEY,
-    ROUTE_ARGS_METADATA_KEY,
+    ROUTE_ARGS_METADATA_KEY
 } from "./constants"
 import RequestError from "./RequestError"
 import { isApiGatewayEvent } from "./typeGuards"
@@ -79,7 +79,8 @@ const replaceFromQueryArgs = (
         }
 
         // Replace the argument at the index with the query parameter value or undefined if not required
-        args[index] = value || undefined
+        args[index] =
+            options.coerce && value ? options.coerce(value) : value || undefined
     })
 }
 
@@ -101,7 +102,7 @@ const replaceFromPathArgs = (
         propertyKey
     )
 
-    metadata?.forEach(({ index, name }) => {
+    metadata?.forEach(({ index, name, options }) => {
         const value = event.pathParameters
             ? event.pathParameters[name]
             : undefined
@@ -114,7 +115,8 @@ const replaceFromPathArgs = (
         }
 
         // Replace the argument at the index with the path parameter value
-        args[index] = value
+        args[index] =
+            options.coerce && value ? options.coerce(value) : value || undefined
     })
 }
 
@@ -147,7 +149,8 @@ const replaceFromHeaderArgs = (
         }
 
         // Replace the argument at the index with the header value or undefined if not required
-        args[index] = value || undefined
+        args[index] =
+            options.coerce && value ? options.coerce(value) : value || undefined
     })
 }
 

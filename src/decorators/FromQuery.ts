@@ -1,3 +1,4 @@
+import getCoercionFn from "../coerce"
 import { FROM_QUERY_METADATA_KEY } from "../constants"
 import { RequestParameterOptions } from "../types"
 
@@ -17,7 +18,14 @@ export default function FromQuery(
                 propertyKey
             ) ?? []
 
-        existing.push({ name, index, options })
+        existing.push({
+            name,
+            index,
+            options: {
+                ...options,
+                coerce: getCoercionFn(target, propertyKey, index),
+            },
+        })
 
         Reflect.defineMetadata(
             FROM_QUERY_METADATA_KEY,
