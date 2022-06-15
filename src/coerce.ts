@@ -9,7 +9,8 @@ const getCoercionFn = (
         "design:paramtypes",
         target,
         propertyKey
-    )[index].name
+    )?.[index]?.name
+
     return paramType === "Number"
         ? coerceNumber
         : paramType === "Boolean"
