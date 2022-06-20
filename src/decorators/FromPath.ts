@@ -1,3 +1,4 @@
+import getCoercionFn from "../coerce"
 import { FROM_PATH_METADATA_KEY } from "../constants"
 
 /**
@@ -13,7 +14,13 @@ export default function FromPath(name: string): ParameterDecorator {
                 propertyKey
             ) ?? []
 
-        existing.push({ name, index })
+        existing.push({
+            name,
+            index,
+            options: {
+                coerce: getCoercionFn(target, propertyKey, index),
+            },
+        })
 
         Reflect.defineMetadata(
             FROM_PATH_METADATA_KEY,

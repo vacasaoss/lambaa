@@ -1,5 +1,6 @@
-import { RequestParameterOptions } from "../types"
+import getCoercionFn from "../coerce"
 import { FROM_HEADER_METADATA_KEY } from "../constants"
+import { RequestParameterOptions } from "../types"
 
 /**
  * Extract a header value from the API Gateway request.
@@ -17,7 +18,14 @@ export default function FromHeader(
                 propertyKey
             ) ?? []
 
-        existing.push({ name, index, options })
+        existing.push({
+            name,
+            index,
+            options: {
+                ...options,
+                coerce: getCoercionFn(target, propertyKey, index),
+            },
+        })
 
         Reflect.defineMetadata(
             FROM_HEADER_METADATA_KEY,

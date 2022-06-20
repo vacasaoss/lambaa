@@ -1,5 +1,5 @@
-import { RequestParameterOptions } from "../types"
 import { FROM_BODY_METADATA_KEY } from "../constants"
+import { RequestParameterOptions } from "../types"
 
 /**
  * Extract and parse JSON data from the API Gateway request body.
