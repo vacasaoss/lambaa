@@ -1,6 +1,6 @@
 # lambaa 🐑
 
-A small framework, with very few dependencies to help build API's using AWS API Gateway & Lambda.
+A small framework, with very few dependencies to help build applications using AWS Lambda.
 
 > **Visit [vacasaoss.github.io/lambaa](https://vacasaoss.github.io/lambaa/index.html) for more docs.**
 

@@ -7,7 +7,7 @@ import FromBody from "../src/decorators/FromBody"
 import FromHeader from "../src/decorators/FromHeader"
 import FromPath from "../src/decorators/FromPath"
 import FromQuery from "../src/decorators/FromQuery"
-import Route from "../src/decorators/Route"
+import Route, { GET } from "../src/decorators/Route"
 import Use from "../src/decorators/Use"
 import RequestError from "../src/RequestError"
 import Router from "../src/Router"
@@ -437,5 +437,42 @@ describe("request parsing tests", () => {
         expect(body.custom.isCustom).to.eql(true)
         expect(body.custom.httpMethod).to.eql("GET")
         expect(body.param).to.eql("test_path_param")
+    })
+
+    it("receives correct parameters in middleware added using the @Use(...) decorator", async () => {
+        @Controller()
+        class TestController {
+            @Use<APIGatewayProxyEvent, APIGatewayProxyResult>(
+                async (event, context, next) => {
+                    expect(event.headers).to.exist
+                    expect(event.pathParameters).to.exist
+                    expect(context.awsRequestId).to.exist
+                    return next(event, context)
+                }
+            )
+            @GET("/ping")
+            public ping(
+                @FromPath("id") id: string,
+                @FromHeader("Content-Type") contentType: string
+            ): APIGatewayProxyResult {
+                expect(id).to.equal("testId")
+                expect(contentType).to.equal("testContentType")
+                return { statusCode: 200, body: "" }
+            }
+        }
+
+        const response = await new Router()
+            .registerController(new TestController())
+            .route(
+                createAPIGatewayEvent({
+                    resource: "/ping",
+                    method: "GET",
+                    headers: { "Content-Type": "testContentType" },
+                    pathParameters: { id: "testId" },
+                }),
+                createLambdaContext()
+            )
+
+        expect(response.statusCode).to.equal(200)
     })
 })

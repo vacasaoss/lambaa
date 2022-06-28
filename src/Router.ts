@@ -11,6 +11,7 @@ import {
 import {
     CONTROLLER_METADATA_KEY,
     ROUTE_HANDLER_METADATA_KEY,
+    ROUTE_HANDLER_MIDDLEWARE_KEY,
 } from "./constants"
 import replaceEventArgs from "./replaceEventArgs"
 import RouteMap from "./RouteMap"
@@ -165,14 +166,28 @@ export default class Router {
     ): Promise<unknown> {
         if (destination) {
             const { controller, method, options } = destination
-            const args = replaceEventArgs(event, controller, method, [
-                event,
-                context,
-            ])
+            const { middleware: controllerMiddleware } = options
 
-            const pipeline = [...(options.middleware ?? [])].reverse()
-            const handler = (e: unknown, c: Context) =>
-                controller[method](...[...args, e, c])
+            const handlerMiddleware =
+                Reflect.getMetadata(
+                    ROUTE_HANDLER_MIDDLEWARE_KEY,
+                    controller,
+                    method
+                ) ?? []
+
+            const pipeline = [
+                ...(controllerMiddleware ?? []),
+                ...handlerMiddleware.reverse(),
+            ].reverse()
+
+            const handler = (e: unknown, c: Context) => {
+                const args = replaceEventArgs(event, controller, method, [
+                    event,
+                    context,
+                ])
+
+                return controller[method](...[...args, e, c])
+            }
 
             return this.invoke(event, context, pipeline, handler, destination)
         }
