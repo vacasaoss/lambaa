@@ -5,6 +5,7 @@ import {
     DynamoDBStreamEvent,
     EventBridgeEvent,
     KinesisStreamEvent,
+    S3Event,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -118,6 +119,13 @@ export default class Router {
         event: EventBridgeEvent<TDetailType, TDetail>,
         context: Context
     ): Promise<void>
+
+    /**
+     * Route an incoming S3 event to a controller.
+     * @param event The S3 event.
+     * @param context The Lambda context.
+     */
+    public route(event: S3Event, context: Context): Promise<void>
 
     /**
      * Route a Lambda event through the middleware pipeline, to a matching controller event handler.

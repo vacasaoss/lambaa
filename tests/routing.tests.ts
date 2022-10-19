@@ -4,6 +4,7 @@ import {
     DynamoDBStreamEvent,
     EventBridgeEvent,
     KinesisStreamEvent,
+    S3Event,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -20,6 +21,7 @@ import Route, {
     PATCH,
     POST,
     PUT,
+    S3,
     Schedule,
     SQS,
 } from "../src/decorators/Route"
@@ -32,6 +34,7 @@ import {
     createEventBridgeEvent,
     createKinesisStreamEvent,
     createLambdaContext as createLambdaContext,
+    createS3Event,
     createScheduledEvent,
     createSQSEvent,
 } from "./testUtil"
@@ -152,6 +155,16 @@ class TestController {
         expect(eventBridgeEvent["detail-type"]).to.equal(
             "RDS DB Instance Event"
         )
+    }
+
+    @S3("arn:aws:s3:::123")
+    public async testS3(s3Event: S3Event): Promise<void> {
+        expect(s3Event.Records).not.to.be.empty
+        expect(
+            s3Event.Records.find(
+                (record) => record.s3.bucket.arn === "arn:aws:s3:::123"
+            )?.s3.bucket.arn
+        ).to.equal("arn:aws:s3:::123")
     }
 }
 
@@ -523,6 +536,19 @@ describe("routing tests", () => {
 
         it("throws error if there is no handler for this source", async () => {
             const event = createEventBridgeEvent("aws.sns", "SNS Event")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes S3 events", () => {
+        it("routes event", async () => {
+            const event = createS3Event("arn:aws:s3:::123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createS3Event("arn:aws:s3:::wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })
