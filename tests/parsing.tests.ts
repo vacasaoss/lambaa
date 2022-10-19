@@ -14,7 +14,7 @@ import Router from "../src/Router"
 import {
     createAPIGatewayEvent,
     createAPIGatewayProxyEvent,
-    createLambdaContext
+    createLambdaContext,
 } from "./testUtil"
 
 const CustomParamForTest = DecodedParam<{
