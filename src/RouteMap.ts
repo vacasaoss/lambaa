@@ -28,6 +28,10 @@ type RouteProperties =
           detailType: string
           source: string
       }
+    | {
+          eventType: "S3"
+          arn: string
+      }
 
 /**
  * Used to store routing data on controllers.
@@ -53,7 +57,8 @@ export default class RouteMap {
             route.eventType === "SQS" ||
             route.eventType === "Schedule" ||
             route.eventType === "Dynamo" ||
-            route.eventType === "Kinesis"
+            route.eventType === "Kinesis" ||
+            route.eventType === "S3"
         ) {
             this.map.set(route.arn, propertyKey.toString())
         } else if (route.eventType === "EventBridge") {
@@ -88,7 +93,8 @@ export default class RouteMap {
             route.eventType === "SQS" ||
             route.eventType === "Schedule" ||
             route.eventType === "Dynamo" ||
-            route.eventType === "Kinesis"
+            route.eventType === "Kinesis" ||
+            route.eventType === "S3"
         ) {
             return this.map.get(route.arn)
         }

@@ -5,7 +5,7 @@ import {
     FROM_HEADER_METADATA_KEY,
     FROM_PATH_METADATA_KEY,
     FROM_QUERY_METADATA_KEY,
-    ROUTE_ARGS_METADATA_KEY
+    ROUTE_ARGS_METADATA_KEY,
 } from "./constants"
 import RequestError from "./RequestError"
 import { isApiGatewayEvent } from "./typeGuards"

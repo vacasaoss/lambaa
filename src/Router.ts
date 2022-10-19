@@ -5,6 +5,7 @@ import {
     DynamoDBStreamEvent,
     EventBridgeEvent,
     KinesisStreamEvent,
+    S3Event,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -24,6 +25,7 @@ import {
     isDynamoDbStreamEvent,
     isKinesisStreamEvent,
     isEventBridgeEvent,
+    isS3event,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -117,6 +119,13 @@ export default class Router {
         event: EventBridgeEvent<TDetailType, TDetail>,
         context: Context
     ): Promise<void>
+
+    /**
+     * Route an incoming S3 event to a controller.
+     * @param event The S3 event.
+     * @param context The Lambda context.
+     */
+    public route(event: S3Event, context: Context): Promise<void>
 
     /**
      * Route a Lambda event through the middleware pipeline, to a matching controller event handler.
@@ -338,6 +347,23 @@ export default class Router {
                     )
 
                     return { controller, method, options }
+                }
+            }
+
+            if (isS3event(event)) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "S3",
+                        arn: record.s3.bucket.arn,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing S3 event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
                 }
             }
         }
