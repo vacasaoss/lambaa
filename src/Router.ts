@@ -24,6 +24,7 @@ import {
     isDynamoDbStreamEvent,
     isKinesisStreamEvent,
     isEventBridgeEvent,
+    isS3event,
 } from "./typeGuards"
 import { ControllerOptions, Handler, MiddlewarePipeline } from "./types"
 
@@ -338,6 +339,23 @@ export default class Router {
                     )
 
                     return { controller, method, options }
+                }
+            }
+
+            if (isS3event(event)) {
+                for (const record of event.Records) {
+                    method = routeMap?.getRoute({
+                        eventType: "S3",
+                        arn: record.s3.bucket.arn,
+                    })
+
+                    if (method) {
+                        this.logDebugMessage(
+                            `Passing S3 event to ${controller?.constructor?.name}.${method}(...)`
+                        )
+
+                        return { controller, method, options }
+                    }
                 }
             }
         }
