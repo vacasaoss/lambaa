@@ -3,6 +3,7 @@ import { ROUTE_ARGS_METADATA_KEY } from "../constants"
 
 /**
  * Define a new parameter decorator.
+ * @internal
  */
 export default function DecodedParam<T>(
     func: (event: APIGatewayProxyEvent) => T

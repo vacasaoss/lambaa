@@ -1,21 +1,21 @@
-import Route from "../src/decorators/Route"
-import FromPath from "../src/decorators/FromPath"
-import FromQuery from "../src/decorators/FromQuery"
-import FromBody from "../src/decorators/FromBody"
-import FromHeader from "../src/decorators/FromHeader"
-import DecodedParam from "../src/decorators/DecodedParam"
-import Router from "../src/Router"
-import {
-    createLambdaContext,
-    createAPIGatewayEvent,
-    createAPIGatewayProxyEvent,
-} from "./testUtil"
-import { expect } from "chai"
-import RequestError from "../src/RequestError"
-import Controller from "../src/decorators/Controller"
-import Use from "../src/decorators/Use"
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
 import { APIGatewayProxyEventPathParameters } from "aws-lambda/trigger/api-gateway-proxy"
+import { expect } from "chai"
+import Controller from "../src/decorators/Controller"
+import DecodedParam from "../src/decorators/DecodedParam"
+import FromBody from "../src/decorators/FromBody"
+import FromHeader from "../src/decorators/FromHeader"
+import FromPath from "../src/decorators/FromPath"
+import FromQuery from "../src/decorators/FromQuery"
+import Route, { GET } from "../src/decorators/Route"
+import Use from "../src/decorators/Use"
+import RequestError from "../src/RequestError"
+import Router from "../src/Router"
+import {
+    createAPIGatewayEvent,
+    createAPIGatewayProxyEvent,
+    createLambdaContext,
+} from "./testUtil"
 
 const CustomParamForTest = DecodedParam<{
     httpMethod: string
@@ -32,10 +32,21 @@ const CustomParamForTest = DecodedParam<{
 @Controller()
 class TestController {
     @Route("GET", "from_path_test")
-    public async fromPathTest(@FromPath("test") test: string) {
+    public async fromPathTest(
+        @FromPath("string") stringParam: string,
+        @FromPath("number") numberParam: number,
+        @FromPath("boolean") booleanParam: boolean
+    ) {
+        expect(typeof stringParam).to.equal("string")
+        expect(typeof numberParam).to.equal("number")
+        expect(typeof booleanParam).to.equal("boolean")
         return {
             statusCode: 200,
-            body: test,
+            body: JSON.stringify({
+                string: stringParam,
+                number: numberParam,
+                boolean: booleanParam,
+            }),
         }
     }
 
@@ -49,18 +60,40 @@ class TestController {
     }
 
     @Route("GET", "from_query_test")
-    public async fromQueryTest(@FromQuery("test") test: string) {
+    public async fromQueryTest(
+        @FromQuery("string") stringParam: string,
+        @FromQuery("number") numberParam: number,
+        @FromQuery("boolean") booleanParam: boolean
+    ) {
+        expect(typeof stringParam).to.equal("string")
+        expect(typeof numberParam).to.equal("number")
+        expect(typeof booleanParam).to.equal("boolean")
         return {
             statusCode: 200,
-            body: test,
+            body: JSON.stringify({
+                string: stringParam,
+                number: numberParam,
+                boolean: booleanParam,
+            }),
         }
     }
 
     @Route("GET", "from_header_test")
-    public async fromHeaderTest(@FromHeader("test") test: string) {
+    public async fromHeaderTest(
+        @FromHeader("string") stringParam: string,
+        @FromHeader("number") numberParam: number,
+        @FromHeader("boolean") booleanParam: boolean
+    ) {
+        expect(typeof stringParam).to.equal("string")
+        expect(typeof numberParam).to.equal("number")
+        expect(typeof booleanParam).to.equal("boolean")
         return {
             statusCode: 200,
-            body: test,
+            body: JSON.stringify({
+                string: stringParam,
+                number: numberParam,
+                boolean: booleanParam,
+            }),
         }
     }
 
@@ -159,14 +192,22 @@ describe("request parsing tests", () => {
             resource: "from_path_test",
             method: "GET",
             pathParameters: {
-                test: "test_path_param",
+                string: "string",
+                number: "5",
+                boolean: "true",
             },
         })
 
         const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test_path_param")
+        expect(response.body).to.equal(
+            JSON.stringify({
+                string: "string",
+                number: 5,
+                boolean: true,
+            })
+        )
     })
 
     it("extracts query string parameter from request", async () => {
@@ -174,14 +215,22 @@ describe("request parsing tests", () => {
             resource: "from_query_test",
             method: "GET",
             queryStringParameters: {
-                test: "test_query_param",
+                string: "string",
+                number: "5",
+                boolean: "true",
             },
         })
 
         const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test_query_param")
+        expect(response.body).to.equal(
+            JSON.stringify({
+                string: "string",
+                number: 5,
+                boolean: true,
+            })
+        )
     })
 
     it("extracts header from request", async () => {
@@ -189,14 +238,22 @@ describe("request parsing tests", () => {
             resource: "from_header_test",
             method: "GET",
             headers: {
-                test: "test_header",
+                string: "string",
+                number: "5",
+                boolean: "true",
             },
         })
 
         const response = await router.route(event, context)
 
         expect(response.statusCode).to.equal(200)
-        expect(response.body).to.equal("test_header")
+        expect(response.body).to.equal(
+            JSON.stringify({
+                string: "string",
+                number: 5,
+                boolean: true,
+            })
+        )
     })
 
     it("extracts JSON body from request", async () => {
@@ -204,6 +261,22 @@ describe("request parsing tests", () => {
             resource: "from_body_test",
             method: "GET",
             body: JSON.stringify({ test: true }),
+        })
+
+        const response = await router.route(event, context)
+
+        expect(response.statusCode).to.equal(200)
+        expect(JSON.parse(response.body)).to.eql({ test: true })
+    })
+
+    it("extracts base64 encoded JSON body from request", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_body_test",
+            method: "GET",
+            body: Buffer.from(JSON.stringify({ test: true })).toString(
+                "base64"
+            ),
+            isBase64Encoded: true,
         })
 
         const response = await router.route(event, context)
@@ -223,6 +296,22 @@ describe("request parsing tests", () => {
         ).to.eventually.be.rejectedWith(RequestError)
     })
 
+    it("throws error if coerced path parameter is NaN", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_path_test",
+            method: "GET",
+            pathParameters: {
+                string: "string",
+                number: "invalid",
+                boolean: "true",
+            },
+        })
+
+        await expect(
+            router.route(event, context)
+        ).to.eventually.be.rejectedWith(RequestError)
+    })
+
     it("throws error if query parameter is not provided", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_query_test",
@@ -234,10 +323,42 @@ describe("request parsing tests", () => {
         ).to.eventually.be.rejectedWith(RequestError)
     })
 
+    it("throws error if coerced query parameter is NaN", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_query_test",
+            method: "GET",
+            queryStringParameters: {
+                string: "string",
+                number: "invalid",
+                boolean: "true",
+            },
+        })
+
+        await expect(
+            router.route(event, context)
+        ).to.eventually.be.rejectedWith(RequestError)
+    })
+
     it("throws error if header is not provided", async () => {
         const event = createAPIGatewayEvent({
             resource: "from_header_test",
             method: "GET",
+        })
+
+        await expect(
+            router.route(event, context)
+        ).to.eventually.be.rejectedWith(RequestError)
+    })
+
+    it("throws error if coerced header is NaN", async () => {
+        const event = createAPIGatewayEvent({
+            resource: "from_header_test",
+            method: "GET",
+            headers: {
+                string: "string",
+                number: "invalid",
+                boolean: "true",
+            },
         })
 
         await expect(
@@ -316,5 +437,42 @@ describe("request parsing tests", () => {
         expect(body.custom.isCustom).to.eql(true)
         expect(body.custom.httpMethod).to.eql("GET")
         expect(body.param).to.eql("test_path_param")
+    })
+
+    it("receives correct parameters in middleware added using the @Use(...) decorator", async () => {
+        @Controller()
+        class TestController {
+            @Use<APIGatewayProxyEvent, APIGatewayProxyResult>(
+                async (event, context, next) => {
+                    expect(event.headers).to.exist
+                    expect(event.pathParameters).to.exist
+                    expect(context.awsRequestId).to.exist
+                    return next(event, context)
+                }
+            )
+            @GET("/ping")
+            public ping(
+                @FromPath("id") id: string,
+                @FromHeader("Content-Type") contentType: string
+            ): APIGatewayProxyResult {
+                expect(id).to.equal("testId")
+                expect(contentType).to.equal("testContentType")
+                return { statusCode: 200, body: "" }
+            }
+        }
+
+        const response = await new Router()
+            .registerController(new TestController())
+            .route(
+                createAPIGatewayEvent({
+                    resource: "/ping",
+                    method: "GET",
+                    headers: { "Content-Type": "testContentType" },
+                    pathParameters: { id: "testId" },
+                }),
+                createLambdaContext()
+            )
+
+        expect(response.statusCode).to.equal(200)
     })
 })

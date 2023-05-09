@@ -1,6 +1,8 @@
 # lambaa 🐑
 
-A small framework, with very few dependencies to help build API's using AWS API Gateway & Lambda.
+A small framework, with very few dependencies to help build applications using AWS Lambda.
+
+> **Visit [vacasaoss.github.io/lambaa](https://vacasaoss.github.io/lambaa/index.html) for more docs.**
 
 ## Installation
 
@@ -22,42 +24,35 @@ Have a look at a [Serverless project](examples/serverless) created using the `aw
 
 This library has the concept of controllers, similar to other web frameworks.
 
-To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](src/decorators/Route.ts), e.g. `@GET("/ping")`.
-
-> Currently only API Gateway, Scheduled and SQS events are supported.
+To create a controller, add the `@Controller()` decorator to a class and define routes using one of the [route decorators](https://vacasaoss.github.io/lambaa/modules.html), e.g. `@GET("/ping")`.
 
 ```typescript
-import { Controller, GET, Schedule, SQS } from "lambaa"
-import {
-    APIGatewayProxyEvent,
-    SQSEvent,
-    APIGatewayProxyResult,
-} from "aws-lambda"
+import { Controller, GET, POST } from "lambaa"
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
 
 @Controller()
-class TestController {
-    @GET("/ping")
-    public ping(event: APIGatewayProxyEvent): APIGatewayProxyResult {
-        // ...
-        return {
-            statusCode: 200,
-            body: "pong",
-        }
-    }
+class UserController {
+    @GET("/user")
+    public getUser(event: APIGatewayProxyEvent): APIGatewayProxyResult {}
 
-    @Schedule("arn:456")
-    public receive(event: ScheduledEvent): void {
-        // ...
-        return
-    }
-
-    @SQS("arn:123")
-    public receive(event: SQSEvent): void {
-        // ...
-        return
-    }
+    @POST("/user")
+    public addUser(event: APIGatewayProxyEvent): APIGatewayProxyResult {}
 }
 ```
+
+#### Other Supported Events
+
+The following event types are supported in addition to API Gateway events.
+
+| Function         | Event Type            |
+| ---------------- | --------------------- |
+| `@SQS()`         | `SQSEvent `           |
+| `@Schedule()`    | `ScheduledEvent`      |
+| `@DynamoDB()`    | `DynamoDBStreamEvent` |
+| `@Kinesis()`     | `KinesisStreamEvent`  |
+| `@EventBridge()` | `EventBridgeEvent`    |
+
+> [See more documentation about the supported event handler decorators here.](https://vacasaoss.github.io/lambaa/modules.html)
 
 ### Setup
 
@@ -75,7 +70,7 @@ export const handler = router.getHandler()
 
 Your handler can be referenced in your `serverless.yml` as follows:
 
-```yml
+```yaml
 functions:
     ping:
         handler: src/index.handler
@@ -86,6 +81,21 @@ functions:
 ```
 
 > See the Serverless [example project](examples/serverless) for an example of how to use with `serverless.ts`.
+
+##### API Gateway Generic Proxy Resources
+
+Generic proxy resources are also supported using the `{proxy+}` path variable.
+
+This can simplify the handler setup by allowing you to configure a single event to handle many different HTTP requests.
+
+```yaml
+events:
+    - http:
+          path: /{proxy+}
+          method: ANY
+```
+
+> Note: if you choose to use a proxy resource, API Gateway will forward all matching HTTP requests to your Lambda function. This will result in an error if the route is not handled by your application. It is recommended to handle this error using a middleware. Check for the `RouterError` type.
 
 ### Middleware
 

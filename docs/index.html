@@ -1,0 +1,168 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>lambaa - v4.1.0</title><meta name="description" content="Documentation for lambaa - v4.1.0"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">lambaa - v4.1.0</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>lambaa - v4.1.0 </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#lambaa-🐑" id="lambaa-🐑" style="color: inherit; text-decoration: none;">
+  <h1>lambaa 🐑</h1>
+</a>
+<p>A small framework, with very few dependencies to help build applications using AWS Lambda.</p>
+<blockquote>
+<p><strong>Visit <a href="https://vacasaoss.github.io/lambaa/index.html">vacasaoss.github.io/lambaa</a> for more docs.</strong></p>
+</blockquote>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h2>Installation</h2>
+</a>
+<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">i</span><span class="hl-1"> </span><span class="hl-0">lambaa</span>
+</code></pre>
+<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">i</span><span class="hl-1"> @</span><span class="hl-0">types</span><span class="hl-1">/</span><span class="hl-0">aws</span><span class="hl-1">-</span><span class="hl-0">lambda</span><span class="hl-1"> -</span><span class="hl-2">D</span>
+</code></pre>
+
+<a href="#example-project" id="example-project" style="color: inherit; text-decoration: none;">
+  <h2>Example Project</h2>
+</a>
+<p>Have a look at a <a href="examples/serverless">Serverless project</a> created using the <code>aws-nodejs-typescript</code> template.</p>
+
+<a href="#guide" id="guide" style="color: inherit; text-decoration: none;">
+  <h2>Guide</h2>
+</a>
+
+<a href="#controllers" id="controllers" style="color: inherit; text-decoration: none;">
+  <h3>Controllers</h3>
+</a>
+<p>This library has the concept of controllers, similar to other web frameworks.</p>
+<p>To create a controller, add the <code>@Controller()</code> decorator to a class and define routes using one of the <a href="https://vacasaoss.github.io/lambaa/modules.html">route decorators</a>, e.g. <code>@GET(&quot;/ping&quot;)</code>.</p>
+<pre><code class="language-typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">Controller</span><span class="hl-1">, </span><span class="hl-0">GET</span><span class="hl-1">, </span><span class="hl-0">POST</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;lambaa&quot;</span><br/><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">APIGatewayProxyEvent</span><span class="hl-1">, </span><span class="hl-0">APIGatewayProxyResult</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;aws-lambda&quot;</span><br/><br/><span class="hl-1">@</span><span class="hl-5">Controller</span><span class="hl-1">()</span><br/><span class="hl-6">class</span><span class="hl-1"> </span><span class="hl-7">UserController</span><span class="hl-1"> {</span><br/><span class="hl-1">    @</span><span class="hl-5">GET</span><span class="hl-1">(</span><span class="hl-4">&quot;/user&quot;</span><span class="hl-1">)</span><br/><span class="hl-1">    </span><span class="hl-6">public</span><span class="hl-1"> </span><span class="hl-5">getUser</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-7">APIGatewayProxyEvent</span><span class="hl-1">): </span><span class="hl-7">APIGatewayProxyResult</span><span class="hl-1"> {}</span><br/><br/><span class="hl-1">    @</span><span class="hl-5">POST</span><span class="hl-1">(</span><span class="hl-4">&quot;/user&quot;</span><span class="hl-1">)</span><br/><span class="hl-1">    </span><span class="hl-6">public</span><span class="hl-1"> </span><span class="hl-5">addUser</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-7">APIGatewayProxyEvent</span><span class="hl-1">): </span><span class="hl-7">APIGatewayProxyResult</span><span class="hl-1"> {}</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#other-supported-events" id="other-supported-events" style="color: inherit; text-decoration: none;">
+  <h4>Other Supported Events</h4>
+</a>
+<p>The following event types are supported in addition to API Gateway events.</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Event Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@SQS()</code></td>
+<td><code>SQSEvent </code></td>
+</tr>
+<tr>
+<td><code>@Schedule()</code></td>
+<td><code>ScheduledEvent</code></td>
+</tr>
+<tr>
+<td><code>@DynamoDB()</code></td>
+<td><code>DynamoDBStreamEvent</code></td>
+</tr>
+<tr>
+<td><code>@Kinesis()</code></td>
+<td><code>KinesisStreamEvent</code></td>
+</tr>
+<tr>
+<td><code>@EventBridge()</code></td>
+<td><code>EventBridgeEvent</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><a href="https://vacasaoss.github.io/lambaa/modules.html">See more documentation about the supported event handler decorators here.</a></p>
+</blockquote>
+
+<a href="#setup" id="setup" style="color: inherit; text-decoration: none;">
+  <h3>Setup</h3>
+</a>
+<p>Create an <code>index.ts</code> file and export the handler.</p>
+<pre><code class="language-typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">Router</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;lambaa&quot;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-2">router</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">Router</span><span class="hl-1">().</span><span class="hl-5">registerController</span><span class="hl-1">(</span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">PingController</span><span class="hl-1">())</span><br/><br/><span class="hl-3">export</span><span class="hl-1"> </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-2">handler</span><span class="hl-1"> = </span><span class="hl-0">router</span><span class="hl-1">.</span><span class="hl-5">getHandler</span><span class="hl-1">()</span>
+</code></pre>
+
+<a href="#use-with-serverless-serverlessyml" id="use-with-serverless-serverlessyml" style="color: inherit; text-decoration: none;">
+  <h4>Use With Serverless (<code>serverless.yml</code>)</h4>
+</a>
+<p>Your handler can be referenced in your <code>serverless.yml</code> as follows:</p>
+<pre><code class="language-yaml"><span class="hl-8">functions</span><span class="hl-1">:</span><br/><span class="hl-1">    </span><span class="hl-8">ping</span><span class="hl-1">:</span><br/><span class="hl-1">        </span><span class="hl-8">handler</span><span class="hl-1">: </span><span class="hl-9">src/index.handler</span><br/><span class="hl-1">    </span><span class="hl-8">events</span><span class="hl-1">:</span><br/><span class="hl-1">        - </span><span class="hl-8">http</span><span class="hl-1">:</span><br/><span class="hl-1">              </span><span class="hl-8">path</span><span class="hl-1">: </span><span class="hl-9">ping</span><br/><span class="hl-1">              </span><span class="hl-8">method</span><span class="hl-1">: </span><span class="hl-9">get</span>
+</code></pre>
+<blockquote>
+<p>See the Serverless <a href="examples/serverless">example project</a> for an example of how to use with <code>serverless.ts</code>.</p>
+</blockquote>
+
+<a href="#api-gateway-generic-proxy-resources" id="api-gateway-generic-proxy-resources" style="color: inherit; text-decoration: none;">
+  <h5>API Gateway Generic Proxy Resources</h5>
+</a>
+<p>Generic proxy resources are also supported using the <code>{proxy+}</code> path variable.</p>
+<p>This can simplify the handler setup by allowing you to configure a single event to handle many different HTTP requests.</p>
+<pre><code class="language-yaml"><span class="hl-8">events</span><span class="hl-1">:</span><br/><span class="hl-1">    - </span><span class="hl-8">http</span><span class="hl-1">:</span><br/><span class="hl-1">          </span><span class="hl-8">path</span><span class="hl-1">: </span><span class="hl-9">/{proxy+}</span><br/><span class="hl-1">          </span><span class="hl-8">method</span><span class="hl-1">: </span><span class="hl-9">ANY</span>
+</code></pre>
+<blockquote>
+<p>Note: if you choose to use a proxy resource, API Gateway will forward all matching HTTP requests to your Lambda function. This will result in an error if the route is not handled by your application. It is recommended to handle this error using a middleware. Check for the <code>RouterError</code> type.</p>
+</blockquote>
+
+<a href="#middleware" id="middleware" style="color: inherit; text-decoration: none;">
+  <h3>Middleware</h3>
+</a>
+<p>Middleware can be used to modify the request/response pipeline.</p>
+<p>You can define middleware by using the <code>Middleware</code>, or <code>MiddlewareFunction</code> interfaces.</p>
+<pre><code class="language-typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">MiddlewareFunction</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;lambaa&quot;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-5">middleware</span><span class="hl-1">: </span><span class="hl-7">MiddlewareFunction</span><span class="hl-1"> = </span><span class="hl-6">async</span><span class="hl-1"> (</span><span class="hl-0">event</span><span class="hl-1">, </span><span class="hl-0">context</span><span class="hl-1">, </span><span class="hl-0">next</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-10">// Operate on the request here</span><br/><br/><span class="hl-1">    </span><span class="hl-10">// Pass the event to the next middleware</span><br/><span class="hl-1">    </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-2">response</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-5">next</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">, </span><span class="hl-0">context</span><span class="hl-1">)</span><br/><br/><span class="hl-1">    </span><span class="hl-10">// Operate on the response here</span><br/><span class="hl-1">    </span><span class="hl-3">return</span><span class="hl-1"> </span><span class="hl-0">response</span><br/><span class="hl-1">}</span>
+</code></pre>
+<pre><code class="language-typescript"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-0">Middleware</span><span class="hl-1">, </span><span class="hl-0">Handler</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;lambaa&quot;</span><br/><span class="hl-3">import</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">APIGatewayProxyEvent</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">APIGatewayProxyResult</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">Context</span><span class="hl-1">,</span><br/><span class="hl-1">} </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-4">&quot;aws-lambda&quot;</span><br/><br/><span class="hl-6">class</span><span class="hl-1"> </span><span class="hl-7">LogRequestMiddleware</span><span class="hl-1"> </span><span class="hl-6">implements</span><span class="hl-1"> </span><span class="hl-7">Middleware</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-6">public</span><span class="hl-1"> </span><span class="hl-6">async</span><span class="hl-1"> </span><span class="hl-5">invoke</span><span class="hl-1">(</span><br/><span class="hl-1">        </span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-7">APIGatewayProxyEvent</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-0">context</span><span class="hl-1">: </span><span class="hl-7">Context</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-0">next</span><span class="hl-1">: </span><span class="hl-7">Handler</span><br/><span class="hl-1">    ): </span><span class="hl-7">Promise</span><span class="hl-1">&lt;</span><span class="hl-7">APIGatewayProxyResult</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">        </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-5">log</span><span class="hl-1">(</span><br/><span class="hl-1">            </span><span class="hl-4">`Received request - method: </span><span class="hl-6">${</span><span class="hl-0">event</span><span class="hl-11">.</span><span class="hl-0">httpMethod</span><span class="hl-6">}</span><span class="hl-4">, resource: </span><span class="hl-6">${</span><span class="hl-0">event</span><span class="hl-11">.</span><span class="hl-0">resource</span><span class="hl-6">}</span><span class="hl-4">`</span><br/><span class="hl-1">        )</span><br/><br/><span class="hl-1">        </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-2">response</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-5">next</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">, </span><span class="hl-0">context</span><span class="hl-1">)</span><br/><br/><span class="hl-1">        </span><span class="hl-3">return</span><span class="hl-1"> </span><span class="hl-0">response</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code></pre>
+<p>The default middleware event/result types can be changed by specifying generic type parameters.</p>
+<pre><code class="language-typescript"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-5">sqsMiddleware</span><span class="hl-1">: </span><span class="hl-7">MiddlewareFunction</span><span class="hl-1">&lt;</span><span class="hl-7">SQSEvent</span><span class="hl-1">, </span><span class="hl-7">void</span><span class="hl-1">&gt; = </span><span class="hl-6">async</span><span class="hl-1"> (</span><br/><span class="hl-1">    </span><span class="hl-0">event</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">context</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">next</span><br/><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-10">// ...</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#applying-middleware" id="applying-middleware" style="color: inherit; text-decoration: none;">
+  <h4>Applying Middleware</h4>
+</a>
+<p>Middleware can be added to a controller method directly, by using the <code>@Use()</code> decorator.</p>
+<pre><code class="language-typescript"><span class="hl-1">@</span><span class="hl-5">Use</span><span class="hl-1">(</span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">AuthenticationMiddleware</span><span class="hl-1">())</span><br/><span class="hl-1">@</span><span class="hl-5">Use</span><span class="hl-1">(</span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">LogRequestMiddleware</span><span class="hl-1">())</span><br/><span class="hl-1">@</span><span class="hl-5">GET</span><span class="hl-1">(</span><span class="hl-4">&quot;/ping&quot;</span><span class="hl-1">)</span><br/><span class="hl-0">public</span><span class="hl-1"> </span><span class="hl-5">ping</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-0">APIGatewayProxyEvent</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-3">return</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-0">statusCode:</span><span class="hl-1"> </span><span class="hl-12">200</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-0">body:</span><span class="hl-1"> </span><span class="hl-4">&quot;pong&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code></pre>
+<p>They can also be applied by being passed to the <code>@Controller()</code> decorator.</p>
+<pre><code class="language-typescript"><span class="hl-1">@</span><span class="hl-5">Controller</span><span class="hl-1">({ </span><span class="hl-0">middleware:</span><span class="hl-1"> [</span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">LogRequestMiddleware</span><span class="hl-1">()] })</span><br/><span class="hl-6">class</span><span class="hl-1"> </span><span class="hl-7">PingController</span><span class="hl-1"> {}</span>
+</code></pre>
+<p>Finally, they can be applied globally using the <code>Router</code>.</p>
+<pre><code class="language-typescript"><span class="hl-3">export</span><span class="hl-1"> </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-2">handler</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">Router</span><span class="hl-1">()</span><br/><span class="hl-1">    .</span><span class="hl-5">registerController</span><span class="hl-1">(</span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">PingController</span><span class="hl-1">())</span><br/><span class="hl-1">    .</span><span class="hl-5">registerMiddleware</span><span class="hl-1">(</span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-5">LogRequestMiddleware</span><span class="hl-1">())</span><br/><span class="hl-1">    .</span><span class="hl-5">getHandler</span><span class="hl-1">()</span>
+</code></pre>
+
+<a href="#request-parsing" id="request-parsing" style="color: inherit; text-decoration: none;">
+  <h3>Request Parsing</h3>
+</a>
+<p>Parameter decorators can be used to extract the parts of the request which we need.</p>
+<pre><code class="language-typescript"><span class="hl-1">@</span><span class="hl-5">GET</span><span class="hl-1">(</span><span class="hl-4">&quot;/user/{id}&quot;</span><span class="hl-1">)</span><br/><span class="hl-0">public</span><span class="hl-1"> </span><span class="hl-5">getUser</span><span class="hl-1">(</span><br/><span class="hl-1">    @</span><span class="hl-5">FromHeader</span><span class="hl-1">(</span><span class="hl-4">&quot;Accept&quot;</span><span class="hl-1">) </span><span class="hl-0">accept</span><span class="hl-1">: </span><span class="hl-0">string</span><span class="hl-1">,</span><br/><span class="hl-1">    @</span><span class="hl-5">FromPath</span><span class="hl-1">(</span><span class="hl-4">&quot;id&quot;</span><span class="hl-1">) </span><span class="hl-0">id</span><span class="hl-1">: </span><span class="hl-0">string</span><span class="hl-1">,</span><br/><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-3">return</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-0">statusCode:</span><span class="hl-1"> </span><span class="hl-12">200</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-0">body:</span><span class="hl-1"> </span><span class="hl-4">&quot;&quot;</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@FromPath()</code></td>
+<td>Extract a path parameter</td>
+<td>string</td>
+</tr>
+<tr>
+<td><code>@FromQuery()</code></td>
+<td>Extract a query string parameter</td>
+<td>string</td>
+</tr>
+<tr>
+<td><code>@FromBody()</code></td>
+<td>Extract JSON body data</td>
+<td>any</td>
+</tr>
+<tr>
+<td><code>@FromHeader()</code></td>
+<td>Extract header value</td>
+<td>string</td>
+</tr>
+</tbody></table>
+
+<a href="#request-parsing-errors" id="request-parsing-errors" style="color: inherit; text-decoration: none;">
+  <h5>Request Parsing Errors</h5>
+</a>
+<p>If the required request parameters cannot be found, a <code>RequestError</code> will be thrown.</p>
+<p>It is recommended to handle this using a middleware.</p>
+<pre><code class="language-typescript"><span class="hl-6">class</span><span class="hl-1"> </span><span class="hl-7">HandleRequestErrorMiddleware</span><span class="hl-1"> </span><span class="hl-6">implements</span><span class="hl-1"> </span><span class="hl-7">Middleware</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-6">public</span><span class="hl-1"> </span><span class="hl-6">async</span><span class="hl-1"> </span><span class="hl-5">invoke</span><span class="hl-1">(</span><br/><span class="hl-1">        </span><span class="hl-0">event</span><span class="hl-1">: </span><span class="hl-7">APIGatewayProxyEvent</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-0">context</span><span class="hl-1">: </span><span class="hl-7">Context</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-0">next</span><span class="hl-1">: </span><span class="hl-7">Handler</span><br/><span class="hl-1">    ): </span><span class="hl-7">Promise</span><span class="hl-1">&lt;</span><span class="hl-7">APIGatewayProxyResult</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">        </span><span class="hl-3">try</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-3">return</span><span class="hl-1"> </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-5">next</span><span class="hl-1">(</span><span class="hl-0">event</span><span class="hl-1">, </span><span class="hl-0">context</span><span class="hl-1">)</span><br/><span class="hl-1">        } </span><span class="hl-3">catch</span><span class="hl-1"> (</span><span class="hl-0">err</span><span class="hl-1">) {</span><br/><span class="hl-1">            </span><span class="hl-3">if</span><span class="hl-1"> (</span><span class="hl-0">err</span><span class="hl-1"> </span><span class="hl-6">instanceof</span><span class="hl-1"> </span><span class="hl-7">RequestError</span><span class="hl-1">) {</span><br/><span class="hl-1">                </span><span class="hl-3">return</span><span class="hl-1"> {</span><br/><span class="hl-1">                    </span><span class="hl-0">statusCode:</span><span class="hl-1"> </span><span class="hl-12">400</span><span class="hl-1">,</span><br/><span class="hl-1">                    </span><span class="hl-0">body:</span><span class="hl-1"> </span><span class="hl-7">JSON</span><span class="hl-1">.</span><span class="hl-5">stringify</span><span class="hl-1">({</span><br/><span class="hl-1">                        </span><span class="hl-0">code:</span><span class="hl-1"> </span><span class="hl-0">err</span><span class="hl-1">.</span><span class="hl-0">code</span><span class="hl-1">,</span><br/><span class="hl-1">                    }),</span><br/><span class="hl-1">                }</span><br/><span class="hl-1">            }</span><br/><br/><span class="hl-1">            </span><span class="hl-3">throw</span><span class="hl-1"> </span><span class="hl-0">err</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code></pre>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/RequestError.html" class="tsd-kind-icon">Request<wbr/>Error</a></li><li class="tsd-kind-class"><a href="classes/Router.html" class="tsd-kind-icon">Router</a></li><li class="tsd-kind-class"><a href="classes/RouterError.html" class="tsd-kind-icon">Router<wbr/>Error</a></li><li class="tsd-kind-interface"><a href="interfaces/ControllerOptions.html" class="tsd-kind-icon">Controller<wbr/>Options</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/Middleware.html" class="tsd-kind-icon">Middleware</a></li><li class="tsd-kind-interface"><a href="interfaces/MiddlewareContext.html" class="tsd-kind-icon">Middleware<wbr/>Context</a></li><li class="tsd-kind-interface"><a href="interfaces/RequestParameterOptions.html" class="tsd-kind-icon">Request<wbr/>Parameter<wbr/>Options</a></li><li class="tsd-kind-type-alias"><a href="modules.html#HTTPMethod" class="tsd-kind-icon">HTTPMethod</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#Handler" class="tsd-kind-icon">Handler</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#MiddlewareFunction" class="tsd-kind-icon">Middleware<wbr/>Function</a></li><li class="tsd-kind-type-alias"><a href="modules.html#RequestErrorCode" class="tsd-kind-icon">Request<wbr/>Error<wbr/>Code</a></li><li class="tsd-kind-type-alias"><a href="modules.html#RouterErrorCode" class="tsd-kind-icon">Router<wbr/>Error<wbr/>Code</a></li><li class="tsd-kind-function"><a href="modules.html#API" class="tsd-kind-icon">API</a></li><li class="tsd-kind-function"><a href="modules.html#Controller" class="tsd-kind-icon">Controller</a></li><li class="tsd-kind-function"><a href="modules.html#DELETE" class="tsd-kind-icon">DELETE</a></li><li class="tsd-kind-function"><a href="modules.html#DynamoDB" class="tsd-kind-icon">DynamoDB</a></li><li class="tsd-kind-function"><a href="modules.html#EventBridge" class="tsd-kind-icon">Event<wbr/>Bridge</a></li><li class="tsd-kind-function"><a href="modules.html#FromBody" class="tsd-kind-icon">From<wbr/>Body</a></li><li class="tsd-kind-function"><a href="modules.html#FromHeader" class="tsd-kind-icon">From<wbr/>Header</a></li><li class="tsd-kind-function"><a href="modules.html#FromPath" class="tsd-kind-icon">From<wbr/>Path</a></li><li class="tsd-kind-function"><a href="modules.html#FromQuery" class="tsd-kind-icon">From<wbr/>Query</a></li><li class="tsd-kind-function"><a href="modules.html#GET" class="tsd-kind-icon">GET</a></li><li class="tsd-kind-function"><a href="modules.html#Kinesis" class="tsd-kind-icon">Kinesis</a></li><li class="tsd-kind-function"><a href="modules.html#PATCH" class="tsd-kind-icon">PATCH</a></li><li class="tsd-kind-function"><a href="modules.html#POST" class="tsd-kind-icon">POST</a></li><li class="tsd-kind-function"><a href="modules.html#PUT" class="tsd-kind-icon">PUT</a></li><li class="tsd-kind-function"><a href="modules.html#Route" class="tsd-kind-icon">Route</a></li><li class="tsd-kind-function"><a href="modules.html#S3" class="tsd-kind-icon">S3</a></li><li class="tsd-kind-function"><a href="modules.html#SNS" class="tsd-kind-icon">SNS</a></li><li class="tsd-kind-function"><a href="modules.html#SQS" class="tsd-kind-icon">SQS</a></li><li class="tsd-kind-function"><a href="modules.html#Schedule" class="tsd-kind-icon">Schedule</a></li><li class="tsd-kind-function tsd-has-type-parameter"><a href="modules.html#Use" class="tsd-kind-icon">Use</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

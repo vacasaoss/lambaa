@@ -15,6 +15,15 @@ const handler = {
                 path: "users",
             },
         },
+
+        // Optional: proxy resource's are also supported
+        {
+            http: {
+                method: "/{proxy+}",
+                path: "ANY",
+            },
+        },
+
         {
             sqs: {
                 arn: {
@@ -43,9 +52,7 @@ const serverlessConfiguration: AWS = {
             shouldStartNameWithService: true,
         },
         environment: {
-            EXAMPLE_QUEUE_ARN: {
-                "Fn::GetAtt": ["exampleQueue", "Arn"],
-            },
+            EXAMPLE_QUEUE_ARN: "arn:aws:sqs:region:1234:exampleQueue",
         },
         lambdaHashingVersion: "20201221",
     },
@@ -55,7 +62,7 @@ const serverlessConfiguration: AWS = {
             exampleQueue: {
                 Type: "AWS::SQS::Queue",
                 Properties: {
-                    QueueName: "example-queue",
+                    QueueName: "exampleQueue",
                 },
             },
         },

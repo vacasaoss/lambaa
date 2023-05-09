@@ -6,4 +6,5 @@ export interface APIGatewayEventFactoryArgs {
     queryStringParameters?: { [name: string]: string }
     headers?: { [name: string]: string }
     path?: string
+    isBase64Encoded?: boolean
 }

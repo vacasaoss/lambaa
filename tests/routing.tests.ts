@@ -1,6 +1,10 @@
 import {
     APIGatewayProxyEvent,
     APIGatewayProxyResult,
+    DynamoDBStreamEvent,
+    EventBridgeEvent,
+    KinesisStreamEvent,
+    S3Event,
     ScheduledEvent,
     SQSEvent,
 } from "aws-lambda"
@@ -10,10 +14,14 @@ import Controller from "../src/decorators/Controller"
 import Route, {
     API,
     DELETE,
+    DynamoDB,
+    EventBridge,
     GET,
+    Kinesis,
     PATCH,
     POST,
     PUT,
+    S3,
     Schedule,
     SQS,
 } from "../src/decorators/Route"
@@ -22,7 +30,11 @@ import RouterError from "../src/RouterError"
 import {
     createAPIGatewayEvent,
     createAPIGatewayProxyEvent,
+    createDynamoDbStreamEvent,
+    createEventBridgeEvent,
+    createKinesisStreamEvent,
     createLambdaContext as createLambdaContext,
+    createS3Event,
     createScheduledEvent,
     createSQSEvent,
 } from "./testUtil"
@@ -106,12 +118,53 @@ class TestController {
         )
         expect(scheduledEvent?.resources).to.include("arn:123/schedule")
     }
+
     @Schedule("arn:234/schedule")
     public async testScheduled2(scheduledEvent: ScheduledEvent): Promise<void> {
         expect(scheduledEvent["detail-type"].toLowerCase()).to.equal(
             "scheduled event"
         )
         expect(scheduledEvent?.resources).to.include("arn:234/schedule")
+    }
+
+    @DynamoDB("arn:aws:dynamodb:us-east-1:123:table/table-name")
+    public async testDynamoDbStream1(
+        dynamoDbStreamEvent: DynamoDBStreamEvent
+    ): Promise<void> {
+        expect(dynamoDbStreamEvent.Records.length).to.be.greaterThan(0)
+        expect(dynamoDbStreamEvent.Records[0].eventSourceARN).to.equal(
+            "arn:aws:dynamodb:us-east-1:123:table/table-name/stream/2022-02-24T22:37:34.890"
+        )
+    }
+
+    @Kinesis("arn:aws:kinesis:us-east-1:123:test")
+    public async testKinesisStream1(
+        kinesisStreamEvent: KinesisStreamEvent
+    ): Promise<void> {
+        expect(kinesisStreamEvent.Records.length).to.be.greaterThan(0)
+        expect(kinesisStreamEvent.Records[0].eventSourceARN).to.equal(
+            "arn:aws:kinesis:us-east-1:123:test"
+        )
+    }
+
+    @EventBridge("aws.rds", "RDS DB Instance Event")
+    public async testEventBridgeEvent(
+        eventBridgeEvent: EventBridgeEvent<string, unknown>
+    ): Promise<void> {
+        expect(eventBridgeEvent.source).to.equal("aws.rds")
+        expect(eventBridgeEvent["detail-type"]).to.equal(
+            "RDS DB Instance Event"
+        )
+    }
+
+    @S3("arn:aws:s3:::123")
+    public async testS3(s3Event: S3Event): Promise<void> {
+        expect(s3Event.Records).not.to.be.empty
+        expect(
+            s3Event.Records.find(
+                (record) => record.s3.bucket.arn === "arn:aws:s3:::123"
+            )?.s3.bucket.arn
+        ).to.equal("arn:aws:s3:::123")
     }
 }
 
@@ -426,6 +479,7 @@ describe("routing tests", () => {
             const event = createScheduledEvent("arn:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
+
         it("routes event with multiple resources", async () => {
             const event = createScheduledEvent(
                 "arn:abc",
@@ -434,6 +488,68 @@ describe("routing tests", () => {
             )
             const response = await router.route(event, context)
             expect(response).to.be.undefined
+        })
+    })
+
+    describe("routes Dynamo DB stream events", () => {
+        it("routes event", async () => {
+            const event = createDynamoDbStreamEvent(
+                "arn:aws:dynamodb:us-east-1:123:table/table-name"
+            )
+
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createDynamoDbStreamEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes Kinesis stream events", () => {
+        it("routes event", async () => {
+            const event = createKinesisStreamEvent(
+                "arn:aws:kinesis:us-east-1:123:test"
+            )
+
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createKinesisStreamEvent("arn:wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes EventBridge events", () => {
+        it("routes event", async () => {
+            const event = createEventBridgeEvent(
+                "aws.rds",
+                "RDS DB Instance Event"
+            )
+
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this source", async () => {
+            const event = createEventBridgeEvent("aws.sns", "SNS Event")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes S3 events", () => {
+        it("routes event", async () => {
+            const event = createS3Event("arn:aws:s3:::123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createS3Event("arn:aws:s3:::wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })
 })

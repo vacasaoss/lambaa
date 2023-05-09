@@ -2,7 +2,8 @@ import { CONTROLLER_METADATA_KEY } from "../constants"
 import { ControllerOptions, MiddlewareFunction, Middleware } from "../types"
 
 /**
- * Define an API controller.
+ * Define a Lambaa controller.
+ * @category Controller
  */
 export default function Controller(): ClassDecorator
 export default function Controller(basePath: string): ClassDecorator

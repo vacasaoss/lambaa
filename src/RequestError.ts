@@ -1,7 +1,8 @@
 import { RequestErrorCode } from "./types"
 
 /**
- * Represents a failure to parse request data.
+ * An error thrown if a request parsing decorator is unable to provide the request data.
+ * @category Error
  */
 export default class RequestError extends Error {
     public isRequestParseError = true
