@@ -62,7 +62,8 @@ export default class RouteMap {
             route.eventType === "Schedule" ||
             route.eventType === "Dynamo" ||
             route.eventType === "Kinesis" ||
-            route.eventType === "S3"
+            route.eventType === "S3" ||
+            route.eventType === "SNS"
         ) {
             this.map.set(route.arn, propertyKey.toString())
         } else if (route.eventType === "EventBridge") {

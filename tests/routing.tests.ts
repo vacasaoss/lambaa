@@ -6,6 +6,7 @@ import {
     KinesisStreamEvent,
     S3Event,
     ScheduledEvent,
+    SNSEvent,
     SQSEvent,
 } from "aws-lambda"
 import { expect } from "chai"
@@ -23,6 +24,7 @@ import Route, {
     PUT,
     S3,
     Schedule,
+    SNS,
     SQS,
 } from "../src/decorators/Route"
 import Router from "../src/Router"
@@ -36,6 +38,7 @@ import {
     createLambdaContext as createLambdaContext,
     createS3Event,
     createScheduledEvent,
+    createSNSEvent,
     createSQSEvent,
 } from "./testUtil"
 
@@ -165,6 +168,16 @@ class TestController {
                 (record) => record.s3.bucket.arn === "arn:aws:s3:::123"
             )?.s3.bucket.arn
         ).to.equal("arn:aws:s3:::123")
+    }
+
+    @SNS("arn:aws:sns:123")
+    public async testSns(snsEvent: SNSEvent): Promise<void> {
+        expect(snsEvent.Records).not.to.be.empty
+        expect(
+            snsEvent.Records.find(
+                (record) => record.Sns.TopicArn === "arn:aws:sns:123"
+            )?.Sns.TopicArn
+        ).to.equal("arn:aws:sns:123")
     }
 }
 
@@ -549,6 +562,19 @@ describe("routing tests", () => {
 
         it("throws error if there is no handler for this arn", async () => {
             const event = createS3Event("arn:aws:s3:::wrong")
+            await expect(router.route(event, context)).to.eventually.be.rejected
+        })
+    })
+
+    describe("routes SNS events", () => {
+        it("routes event", async () => {
+            const event = createSNSEvent("arn:aws:sns:123")
+            const response = await router.route(event, context)
+            expect(response).to.be.undefined
+        })
+
+        it("throws error if there is no handler for this arn", async () => {
+            const event = createSNSEvent("arn:aws:sns:wrong")
             await expect(router.route(event, context)).to.eventually.be.rejected
         })
     })

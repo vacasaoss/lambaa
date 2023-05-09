@@ -89,21 +89,7 @@ export function EventBridge(
  * @category Event Handler Decorator
  */
 export function S3(arn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute({ eventType: "S3", arn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "S3", arn })
 }
 
 /**

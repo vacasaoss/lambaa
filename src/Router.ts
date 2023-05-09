@@ -7,6 +7,7 @@ import {
     KinesisStreamEvent,
     S3Event,
     ScheduledEvent,
+    SNSEvent,
     SQSEvent,
 } from "aws-lambda"
 import {
@@ -127,6 +128,13 @@ export default class Router {
      * @param context The Lambda context.
      */
     public route(event: S3Event, context: Context): Promise<void>
+
+    /**
+     * Route an incoming SNS event to a controller.
+     * @param event The SNS event.
+     * @param context The Lambda context.
+     */
+    public route(event: SNSEvent, context: Context): Promise<void>
 
     /**
      * Route a Lambda event through the middleware pipeline, to a matching controller event handler.
