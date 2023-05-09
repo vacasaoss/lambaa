@@ -1,6 +1,24 @@
 import { ROUTE_HANDLER_METADATA_KEY } from "../constants"
-import RouteMap from "../RouteMap"
+import RouteMap, { RouteProperties } from "../RouteMap"
 import { HTTPMethod } from "../types"
+
+function createDecorator(route: RouteProperties): MethodDecorator {
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor: PropertyDescriptor
+    ) => {
+        const routeMap: RouteMap =
+            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
+            new RouteMap()
+
+        routeMap.addRoute(route, propertyKey)
+
+        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
+
+        return descriptor
+    }
+}
 
 /**
  * Define an API Gateway request handler.
@@ -12,24 +30,7 @@ export default function Route(
     method: HTTPMethod,
     resource: string
 ): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute(
-            { eventType: "API_GATEWAY", method, resource },
-            propertyKey
-        )
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "API_GATEWAY", method, resource })
 }
 
 /**
@@ -38,21 +39,7 @@ export default function Route(
  * @param arn The ARN of the queue.
  */
 export function SQS(arn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute({ eventType: "SQS", arn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "SQS", arn })
 }
 
 /**
@@ -62,21 +49,7 @@ export function SQS(arn: string): MethodDecorator {
  * @see https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents.html
  */
 export function Schedule(arn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute({ eventType: "Schedule", arn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "Schedule", arn })
 }
 
 /**
@@ -85,21 +58,7 @@ export function Schedule(arn: string): MethodDecorator {
  * @param tableArn The ARN of the table (not the event stream ARN).
  */
 export function DynamoDB(tableArn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute({ eventType: "Dynamo", arn: tableArn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "Dynamo", arn: tableArn })
 }
 
 /**
@@ -108,21 +67,7 @@ export function DynamoDB(tableArn: string): MethodDecorator {
  * @param arn The ARN of the event stream.
  */
 export function Kinesis(arn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute({ eventType: "Kinesis", arn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "Kinesis", arn })
 }
 
 /**
@@ -135,24 +80,7 @@ export function EventBridge(
     source: string,
     detailType: string
 ): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
-
-        routeMap.addRoute(
-            { eventType: "EventBridge", detailType, source },
-            propertyKey
-        )
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+    return createDecorator({ eventType: "EventBridge", detailType, source })
 }
 
 /**
@@ -161,21 +89,16 @@ export function EventBridge(
  * @category Event Handler Decorator
  */
 export function S3(arn: string): MethodDecorator {
-    return (
-        target: any,
-        propertyKey: string | symbol,
-        descriptor: PropertyDescriptor
-    ) => {
-        const routeMap: RouteMap =
-            Reflect.getMetadata(ROUTE_HANDLER_METADATA_KEY, target) ??
-            new RouteMap()
+    return createDecorator({ eventType: "S3", arn })
+}
 
-        routeMap.addRoute({ eventType: "S3", arn }, propertyKey)
-
-        Reflect.defineMetadata(ROUTE_HANDLER_METADATA_KEY, routeMap, target)
-
-        return descriptor
-    }
+/**
+ * Define an SNS event handler.
+ * @category Event Handler Decorator
+ * @param arn The ARN of the topic.
+ */
+export function SNS(arn: string): MethodDecorator {
+    return createDecorator({ eventType: "SNS", arn })
 }
 
 /**

@@ -51,6 +51,8 @@ The following event types are supported in addition to API Gateway events.
 | `@DynamoDB()`    | `DynamoDBStreamEvent` |
 | `@Kinesis()`     | `KinesisStreamEvent`  |
 | `@EventBridge()` | `EventBridgeEvent`    |
+| `@S3()`          | `S3Event`             |
+| `@SNS()`         | `SNSEvent`            |
 
 > [See more documentation about the supported event handler decorators here.](https://vacasaoss.github.io/lambaa/modules.html)
 

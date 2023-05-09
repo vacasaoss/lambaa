@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent } from "aws-lambda"
 
-type RouteProperties =
+export type RouteProperties =
     | {
           eventType: "API_GATEWAY"
           method: string
@@ -32,6 +32,10 @@ type RouteProperties =
           eventType: "S3"
           arn: string
       }
+    | {
+          eventType: "SNS"
+          arn: string
+      }
 
 /**
  * Used to store routing data on controllers.
@@ -58,7 +62,8 @@ export default class RouteMap {
             route.eventType === "Schedule" ||
             route.eventType === "Dynamo" ||
             route.eventType === "Kinesis" ||
-            route.eventType === "S3"
+            route.eventType === "S3" ||
+            route.eventType === "SNS"
         ) {
             this.map.set(route.arn, propertyKey.toString())
         } else if (route.eventType === "EventBridge") {
@@ -94,7 +99,8 @@ export default class RouteMap {
             route.eventType === "Schedule" ||
             route.eventType === "Dynamo" ||
             route.eventType === "Kinesis" ||
-            route.eventType === "S3"
+            route.eventType === "S3" ||
+            route.eventType === "SNS"
         ) {
             return this.map.get(route.arn)
         }

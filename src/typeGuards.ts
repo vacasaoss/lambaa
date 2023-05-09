@@ -6,6 +6,7 @@ import {
     KinesisStreamEvent,
     EventBridgeEvent,
     S3Event,
+    SNSEvent,
 } from "aws-lambda"
 
 export const isApiGatewayEvent = (
@@ -26,6 +27,14 @@ export const isSqsEvent = (event: unknown): event is SQSEvent => {
     const e = event as SQSEvent
     return (
         e?.Records?.find(({ eventSource }) => eventSource === "aws:sqs") !==
+        undefined
+    )
+}
+
+export const isSNSEvent = (event: unknown): event is SNSEvent => {
+    const e = event as SNSEvent
+    return (
+        e?.Records?.find(({ EventSource }) => EventSource === "aws:sns") !==
         undefined
     )
 }
